@@ -1,27 +1,38 @@
 ﻿open System.IO
 
-let processLine (line: string) =
+type Command =
+    | Forward
+    | Down
+    | Up
+
+let parseCommand command =
+    match command with
+    | "forward" -> Forward
+    | "down" -> Down
+    | "up" -> Up
+    | _ -> failwithf "Invalid command: %s" command
+
+let parseLine (line: string) =
     match line.Trim().Split([| ' ' |]) with
-    | [| command; units |] -> Some(string command, units |> string |> int)
+    | [| command; units |] -> Some(string command |> parseCommand, units |> string |> int)
     | _ -> None
 
 let commands =
     File.ReadLines("input.txt")
-    |> Seq.choose processLine
+    |> Seq.choose parseLine
 
 module Part1 =
     let moveSub (coords: {| depth: int; position: int |}) (command, units) =
         match command with
-        | "forward" ->
+        | Forward ->
             {| coords with
                 position = coords.position + units |}
-        | "down" ->
+        | Down ->
             {| coords with
                 depth = coords.depth + units |}
-        | "up" ->
+        | Up ->
             {| coords with
                 depth = coords.depth - units |}
-        | _ -> failwithf "Invalid command: %s" command
 
     let coords =
         commands
@@ -37,17 +48,16 @@ module Part2 =
         (command, units)
         =
         match command with
-        | "forward" ->
+        | Forward ->
             {| coords with
                 position = coords.position + units
                 depth = coords.depth + coords.aim * units |}
-        | "down" ->
+        | Down ->
             {| coords with
                 aim = coords.aim + units |}
-        | "up" ->
+        | Up ->
             {| coords with
                 aim = coords.aim - units |}
-        | _ -> failwithf "Invalid command: %s" command
 
     let coords =
         commands
