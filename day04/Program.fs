@@ -6,8 +6,8 @@ type Cell = { Num: uint; Called: bool }
 type Board = Cell [,]
 
 type ParseResult =
-    { Queue: uint list
-      Boards: Board list }
+    { Queue: list<uint>
+      Boards: list<Board> }
 
 let parseInput (input: string) : ParseResult =
     let sections =

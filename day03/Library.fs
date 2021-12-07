@@ -18,9 +18,9 @@ let incrementCount count bit =
     | _ -> failwithf "Bad input bit %c" bit
 
 module Part1 =
-    let countBits: Count seq -> char seq -> Count seq = Seq.map2 incrementCount
+    let countBits: seq<Count> -> seq<char> -> seq<Count> = Seq.map2 incrementCount
 
-    let counts (input: string seq) =
+    let counts (input: seq<string>) =
         let numLength = input |> head |> length
 
         input
@@ -34,9 +34,9 @@ module Part1 =
 
         System.Convert.ToUInt32(binary, 2)
 
-    let gammaRate: Count seq -> uint32 = calcRate (>)
+    let gammaRate: seq<Count> -> uint32 = calcRate (>)
 
-    let epsilonRate: Count seq -> uint32 = calcRate (<)
+    let epsilonRate: seq<Count> -> uint32 = calcRate (<)
 
 module Part2 =
     let countBit index acc (num: string) = incrementCount acc num.[index]
@@ -56,8 +56,8 @@ module Part2 =
 
         System.Convert.ToUInt32(Seq.exactlyOne result, 2)
 
-    let oxygenGeneratorRating: string seq -> uint32 =
+    let oxygenGeneratorRating: seq<string> -> uint32 =
         calcRating (fun zeros ones -> if zeros > ones then '0' else '1')
 
-    let co2ScrubberRating: string seq -> uint32 =
+    let co2ScrubberRating: seq<string> -> uint32 =
         calcRating (fun zeros ones -> if zeros > ones then '1' else '0')
