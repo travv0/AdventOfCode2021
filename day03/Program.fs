@@ -4,20 +4,29 @@ let input = File.ReadLines("input.txt")
 
 let numLength = input |> Seq.head |> Seq.length
 
-let incrementCount (bit: char) (counts: int []) =
-    Array.updateAt (int bit - int '0') (counts.[int bit - int '0'] + 1) counts
+type Count = { Zeros: int; Ones: int }
+
+let incrementCount bit count =
+    if bit = '0' then
+        { count with Zeros = count.Zeros + 1 }
+    elif bit = '1' then
+        { count with Ones = count.Ones + 1 }
+    else
+        failwithf "Bad input bit %c" bit
 
 module Part1 =
-    let countBits (acc: int [] []) (num: char seq) =
-        [| for counts, bit in Seq.zip acc num do
-               incrementCount bit counts |]
+    let countBits acc num =
+        seq {
+            for count, bit in Seq.zip acc num do
+                incrementCount bit count
+        }
 
     let counts =
         input
-        |> Seq.fold countBits (Array.create numLength (Array.create 2 0))
+        |> Seq.fold countBits (Seq.replicate numLength { Zeros = 0; Ones = 0 })
 
     let gammaRateBinary =
-        [| for [| zeros; ones |] in counts do
+        [| for { Zeros = zeros; Ones = ones } in counts do
                if zeros > ones then '0' else '1' |]
         |> System.String
 
@@ -25,7 +34,7 @@ module Part1 =
         System.Convert.ToUInt32(gammaRateBinary, 2)
 
     let epsilonRateBinary =
-        [| for [| zeros; ones |] in counts do
+        [| for { Zeros = zeros; Ones = ones } in counts do
                if zeros < ones then '0' else '1' |]
         |> System.String
 
@@ -35,15 +44,16 @@ module Part1 =
     printfn "The power consumption of the submarine is %d" (gammaRate * epsilonRate)
 
 module Part2 =
-    let countBit index (acc: int []) (num: string) = incrementCount num.[index] acc
+    let countBit index acc (num: string) = incrementCount num.[index] acc
 
     let calcRating rule =
         let mutable result = input
 
         for i in 0 .. numLength - 1 do
             if Seq.length result > 1 then
-                let [| zeros; ones |] =
-                    result |> Seq.fold (countBit i) (Array.create 2 0)
+                let { Zeros = zeros; Ones = ones } =
+                    result
+                    |> Seq.fold (countBit i) { Zeros = 0; Ones = 0 }
 
                 result <-
                     result
