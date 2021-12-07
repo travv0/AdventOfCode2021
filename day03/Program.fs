@@ -1,21 +1,21 @@
-﻿open System.IO
-open Day3
+﻿open Day3.Part1
+open Day3.Part2
+open FSharpPlus
+open System.IO
 
 [<EntryPoint>]
 let main args =
     let fileName =
-        args
-        |> Array.tryHead
-        |> Option.defaultValue "input.txt"
+        args |> tryHead |> Option.defaultValue "input.txt"
 
     let input = File.ReadLines(fileName)
-    let counts = Part1.counts input
+    let counts = counts input
 
-    printfn "The power consumption of the submarine is %d" (Part1.gammaRate counts * Part1.epsilonRate counts)
+    printfn "The power consumption of the submarine is %d" (gammaRate counts * epsilonRate counts)
 
     printfn
         "The life support rating of the submarine is %d"
-        (Part2.oxygenGeneratorRating input
-         * Part2.co2ScrubberRating input)
+        (oxygenGeneratorRating input
+         * co2ScrubberRating input)
 
     0

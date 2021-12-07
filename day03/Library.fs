@@ -1,24 +1,30 @@
 module Day3
 
-type Count = { Zeros: int; Ones: int }
+open FSharpPlus
 
-module Count =
-    let empty = { Zeros = 0; Ones = 0 }
+type Count =
+    { Zeros: int
+      Ones: int }
+    static member Zero = { Zeros = 0; Ones = 0 }
+
+    static member (+)({ Zeros = zeros1; Ones = ones1 }, { Zeros = zeros2; Ones = ones2 }) =
+        { Zeros = zeros1 + zeros2
+          Ones = ones1 + ones2 }
 
 let incrementCount count bit =
     match bit with
-    | '0' -> { count with Zeros = count.Zeros + 1 }
-    | '1' -> { count with Ones = count.Ones + 1 }
+    | '0' -> count ++ { zero with Zeros = 1 }
+    | '1' -> count ++ { zero with Ones = 1 }
     | _ -> failwithf "Bad input bit %c" bit
 
 module Part1 =
     let countBits: Count seq -> char seq -> Count seq = Seq.map2 incrementCount
 
-    let counts input =
-        let numLength = input |> Seq.head |> Seq.length
+    let counts (input: string seq) =
+        let numLength = input |> head |> length
 
         input
-        |> Seq.fold countBits (Seq.replicate numLength Count.empty)
+        |> fold countBits (Seq.replicate numLength zero)
 
     let calcRate comp counts =
         let binary =
@@ -36,16 +42,15 @@ module Part2 =
     let countBit index acc (num: string) = incrementCount acc num.[index]
 
     let calcRating rule input =
-        let mutable result = input |> List.ofSeq
+        let mutable result = input |> toList
         let mutable i = 0
 
-        while Seq.length result > 1 do
-            let { Zeros = zeros; Ones = ones } =
-                result |> Seq.fold (countBit i) Count.empty
+        while length result > 1 do
+            let { Zeros = zeros; Ones = ones } = result |> fold (countBit i) zero
 
             result <-
                 result
-                |> List.filter (fun num -> num.[i] = rule zeros ones)
+                |> filter (fun num -> num.[i] = rule zeros ones)
 
             i <- i + 1
 
