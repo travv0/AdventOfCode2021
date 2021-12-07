@@ -2,71 +2,57 @@ module Day3
 
 type Count = { Zeros: int; Ones: int }
 
-let incrementCount bit count =
-    if bit = '0' then
-        { count with Zeros = count.Zeros + 1 }
-    elif bit = '1' then
-        { count with Ones = count.Ones + 1 }
-    else
-        failwithf "Bad input bit %c" bit
+module Count =
+    let empty = { Zeros = 0; Ones = 0 }
+
+let incrementCount count bit =
+    match bit with
+    | '0' -> { count with Zeros = count.Zeros + 1 }
+    | '1' -> { count with Ones = count.Ones + 1 }
+    | _ -> failwithf "Bad input bit %c" bit
 
 module Part1 =
-    let countBits acc num =
-        seq {
-            for count, bit in Seq.zip acc num do
-                incrementCount bit count
-        }
+    let countBits: Count seq -> char seq -> Count seq = Seq.map2 incrementCount
 
     let counts input =
         let numLength = input |> Seq.head |> Seq.length
 
         input
-        |> Seq.fold countBits (Seq.replicate numLength { Zeros = 0; Ones = 0 })
+        |> Seq.fold countBits (Seq.replicate numLength Count.empty)
 
-    let gammaRateBinary counts =
-        [| for { Zeros = zeros; Ones = ones } in counts do
-               if zeros > ones then '0' else '1' |]
-        |> System.String
+    let calcRate comp counts =
+        let binary =
+            [| for { Zeros = zeros; Ones = ones } in counts do
+                   if comp zeros ones then '0' else '1' |]
+            |> System.String
 
-    let gammaRate counts =
-        System.Convert.ToUInt32(gammaRateBinary counts, 2)
+        System.Convert.ToUInt32(binary, 2)
 
-    let epsilonRateBinary counts =
-        [| for { Zeros = zeros; Ones = ones } in counts do
-               if zeros < ones then '0' else '1' |]
-        |> System.String
+    let gammaRate: Count seq -> uint32 = calcRate (>)
 
-    let epsilonRate counts =
-        System.Convert.ToUInt32(epsilonRateBinary counts, 2)
-
+    let epsilonRate: Count seq -> uint32 = calcRate (<)
 
 module Part2 =
-    let countBit index acc (num: string) = incrementCount num.[index] acc
+    let countBit index acc (num: string) = incrementCount acc num.[index]
 
-    let calcRating input rule =
-        let numLength = input |> Seq.head |> Seq.length
-        let mutable result = input
+    let calcRating rule input =
+        let mutable result = input |> List.ofSeq
+        let mutable i = 0
 
-        for i in 0 .. numLength - 1 do
-            if Seq.length result > 1 then
-                let { Zeros = zeros; Ones = ones } =
-                    result
-                    |> Seq.fold (countBit i) { Zeros = 0; Ones = 0 }
+        while Seq.length result > 1 do
+            let { Zeros = zeros; Ones = ones } =
+                result |> Seq.fold (countBit i) Count.empty
 
-                result <-
-                    result
-                    |> Seq.filter (fun num -> num.[i] = rule zeros ones)
+            result <-
+                result
+                |> List.filter (fun num -> num.[i] = rule zeros ones)
 
-        Seq.exactlyOne result
+            i <- i + 1
 
-    let oxygenGeneratorRatingBinary input =
-        calcRating input (fun zeros ones -> if zeros > ones then '0' else '1')
+        System.Convert.ToUInt32(Seq.exactlyOne result, 2)
 
-    let co2ScrubberRatingBinary input =
-        calcRating input (fun zeros ones -> if zeros > ones then '1' else '0')
+    let oxygenGeneratorRating: string seq -> uint32 =
+        calcRating (fun zeros ones -> if zeros > ones then '0' else '1')
 
-    let oxygenGeneratorRating input =
-        System.Convert.ToUInt32(oxygenGeneratorRatingBinary input, 2)
-
-    let co2ScrubberRating input =
-        System.Convert.ToUInt32(co2ScrubberRatingBinary input, 2)
+    let co2ScrubberRating: string seq -> uint32 =
+        calcRating (fun zeros ones -> if zeros > ones then '1' else '0')
