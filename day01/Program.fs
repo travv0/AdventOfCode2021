@@ -1,23 +1,20 @@
 ﻿open System.IO
 
-let lines = File.ReadAllLines("input.txt")
+let lines =
+    File.ReadAllLines("input.txt") |> Seq.map int
 
 module Part1 =
-    let mutable prev = lines |> Seq.head |> int
-
     let increases =
-        seq {
-            for line in Seq.tail lines do
-                let curr = int line
-                let result = curr > prev
-                prev <- curr
-                result
-        }
+        let mutable prev = lines |> Seq.head
 
-    increases
-    |> Seq.where id
-    |> Seq.length
-    |> printfn "Number of times depth increases: %d"
+        seq {
+            for curr in Seq.tail lines do
+                if curr > prev then yield ()
+                prev <- curr
+        }
+        |> Seq.length
+
+    printfn "Number of times depth increases: %d" increases
 
 module Part2 =
     let tails l =
@@ -28,24 +25,21 @@ module Part2 =
 
         tails' (List.ofSeq l) []
 
-    let inline sumGroup l =
+    let sumGroup l =
         match l with
-        | a :: b :: c :: _ -> Some(int a + int b + int c)
+        | a :: b :: c :: _ -> Some(a + b + c)
         | _ -> None
 
     let sums = lines |> tails |> Seq.choose sumGroup
 
-    let mutable prev = sums |> Seq.head
-
     let increases =
+        let mutable prev = sums |> Seq.head
+
         seq {
             for sum in Seq.tail sums do
-                let result = sum > prev
+                if sum > prev then yield ()
                 prev <- sum
-                result
         }
+        |> Seq.length
 
-    increases
-    |> Seq.where id
-    |> Seq.length
-    |> printfn "Number of times sum in sliding window increases: %d"
+    printfn "Number of times sum in sliding window increases: %d" increases
