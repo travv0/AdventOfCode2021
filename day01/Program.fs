@@ -3,18 +3,19 @@
 let lines =
     File.ReadAllLines("input.txt") |> Seq.map int
 
+let countIncreases xs =
+    let mutable prev = Seq.head xs
+
+    seq {
+        for x in Seq.tail xs do
+            if x > prev then yield ()
+            prev <- x
+    }
+    |> Seq.length
+
 module Part1 =
-    let increases =
-        let mutable prev = lines |> Seq.head
-
-        seq {
-            for curr in Seq.tail lines do
-                if curr > prev then yield ()
-                prev <- curr
-        }
-        |> Seq.length
-
-    printfn "Number of times depth increases: %d" increases
+    countIncreases lines
+    |> printfn "Number of times depth increases: %d"
 
 module Part2 =
     let tails l =
@@ -32,14 +33,5 @@ module Part2 =
 
     let sums = lines |> tails |> Seq.choose sumGroup
 
-    let increases =
-        let mutable prev = sums |> Seq.head
-
-        seq {
-            for sum in Seq.tail sums do
-                if sum > prev then yield ()
-                prev <- sum
-        }
-        |> Seq.length
-
-    printfn "Number of times sum in sliding window increases: %d" increases
+    countIncreases sums
+    |> printfn "Number of times sum in sliding window increases: %d"
