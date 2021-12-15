@@ -13,25 +13,23 @@ let countIncreases xs =
     }
     |> Seq.length
 
-module Part1 =
-    countIncreases lines
-    |> printfn "Number of times depth increases: %d"
+countIncreases lines
+|> printfn "Number of times depth increases: %d"
 
-module Part2 =
-    let tails l =
-        let rec tails' l acc =
-            match l with
-            | [] -> acc |> List.rev
-            | _ :: rest -> tails' rest (l :: acc)
-
-        tails' (List.ofSeq l) []
-
-    let sumGroup l =
+let tails l =
+    let rec tails' l acc =
         match l with
-        | a :: b :: c :: _ -> Some(a + b + c)
-        | _ -> None
+        | [] -> acc |> List.rev
+        | _ :: rest -> tails' rest (l :: acc)
 
-    let sums = lines |> tails |> Seq.choose sumGroup
+    tails' (List.ofSeq l) []
 
-    countIncreases sums
-    |> printfn "Number of times sum in sliding window increases: %d"
+let sumGroup l =
+    match l with
+    | a :: b :: c :: _ -> Some(a + b + c)
+    | _ -> None
+
+let sums = lines |> tails |> Seq.choose sumGroup
+
+countIncreases sums
+|> printfn "Number of times sum in sliding window increases: %d"
