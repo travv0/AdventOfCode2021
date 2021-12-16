@@ -33,6 +33,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , split
   default-language: Haskell2010
 
 executable day06-exe
@@ -46,6 +47,7 @@ executable day06-exe
       base >=4.7 && <5
     , containers
     , day06
+    , split
   default-language: Haskell2010
 
 test-suite day06-test
@@ -61,4 +63,5 @@ test-suite day06-test
     , containers
     , day06
     , hspec
+    , split
   default-language: Haskell2010
