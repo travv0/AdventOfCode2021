@@ -13,11 +13,11 @@ let positions =
 
 let inline cost r = (^T: (member Cost : int) r)
 
-let calcCheapestFuelCost distanceCalc positions =
+let calcCheapestFuelCost fuelUseCalc positions =
     let mutable cheapestPosition, cheapestCost = -1, Int32.MaxValue
 
     for i in List.min positions .. List.max positions do
-        let cost = positions |> List.sumBy (distanceCalc i)
+        let cost = positions |> List.sumBy (fuelUseCalc i)
 
         if cost < cheapestCost then
             cheapestCost <- cost
