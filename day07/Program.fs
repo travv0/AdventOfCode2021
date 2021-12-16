@@ -32,7 +32,7 @@ module Part1 =
 
     cheapestFuelCost positions
     |> cost
-    |> printfn "The cheapest amount of fuel that can be spent for all crabs to align is %d"
+    |> printfn "The cheapest amount of fuel that can be spent for all crabs to align for part 1 is %d"
 
 module Part2 =
     let cheapestFuelCost positions =
@@ -40,4 +40,4 @@ module Part2 =
 
     cheapestFuelCost positions
     |> cost
-    |> printfn "The cheapest amount of fuel that can be spent for all crabs to align is %d"
+    |> printfn "The cheapest amount of fuel that can be spent for all crabs to align for part 2 is %d"
