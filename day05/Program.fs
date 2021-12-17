@@ -29,15 +29,13 @@ let parseInput (input: string) =
 let lines = parseInput input
 
 let fillLine line =
-    if line.Start.X = line.End.X then
-        let [ y1; y2 ] =
-            [ line.Start.Y; line.End.Y ] |> List.sort
+    let sort (a, b) = if a < b then a, b else b, a
 
+    if line.Start.X = line.End.X then
+        let y1, y2 = sort (line.Start.Y, line.End.Y)
         [ for y in y1 .. y2 -> { X = line.Start.X; Y = y } ]
     elif line.Start.Y = line.End.Y then
-        let [ x1; x2 ] =
-            [ line.Start.X; line.End.X ] |> List.sort
-
+        let x1, x2 = sort (line.Start.X, line.End.X)
         [ for x in x1 .. x2 -> { X = x; Y = line.Start.Y } ]
     else
         let xs =

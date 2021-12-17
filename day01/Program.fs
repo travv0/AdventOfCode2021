@@ -24,8 +24,8 @@ let tails l =
 
     tails' (List.ofSeq l) []
 
-let sumGroup l =
-    match l with
+let sumGroup =
+    function
     | a :: b :: c :: _ -> Some(a + b + c)
     | _ -> None
 

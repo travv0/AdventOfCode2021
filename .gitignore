@@ -2,4 +2,5 @@
 bin/
 obj/
 test*.txt
-*rs/
+/*
+!/day[0-1][0-9]
