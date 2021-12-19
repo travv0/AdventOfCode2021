@@ -1,4 +1,8 @@
-open Core
+open Base
+open Printf
+open Stdio
+
+let failwithf f = ksprintf failwith f
 
 let (>>) f g x = g(f(x));;
 let (<<) f g x = f(g(x));;
@@ -109,7 +113,7 @@ let to_number digits output =
   output
   |> List.map ~f:(fun num -> lookup num digits)
   |> String.of_char_list
-  |> int_of_string
+  |> Int.of_string
 
 let () =
   digits_with_unique_num_of_segments

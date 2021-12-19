@@ -1,0 +1,15 @@
+{
+    "esy": {
+        "build": "dune build"
+    },
+    "scripts": {
+        "run": "esy b dune exec ./day08.exe"
+    },
+    "dependencies": {
+        "ocaml": "*",
+        "@opam/dune": "*",
+        "@opam/base": "*",
+        "@opam/stdio": "*",
+        "@opam/merlin": "*"
+    }
+}
