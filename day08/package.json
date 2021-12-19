@@ -13,7 +13,6 @@
         "@opam/stdio": "*"
     },
     "devDependencies": {
-        "@opam/merlin": "*",
-        "@opam/ocp-indent": "*"
+        "@opam/ocaml-lsp-server": "*"
     }
 }
