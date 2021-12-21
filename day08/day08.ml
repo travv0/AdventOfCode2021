@@ -14,6 +14,18 @@ let file_name =
 let input = In_channel.read_all file_name
 let lines = input |> String.strip |> String.split ~on:'\n' |> Sequence.of_list
 
+module Digit = struct
+  module T = struct
+    type t = (char, Char.comparator_witness) Set.t
+
+    let compare = Set.compare Char.compare (fun _ _ -> 0)
+    let sexp_of_t digit = Set.to_list digit |> List.sexp_of_t Char.sexp_of_t
+  end
+
+  include T
+  include Comparator.Make (T)
+end
+
 let digits =
   lines
   |> Sequence.map ~f:(fun line ->
@@ -108,27 +120,23 @@ let solve nums =
     |> List.find ~f:(fun num -> not (Set.equal num six || Set.equal num nine))
     |> Option.value_exn ~message:"failed to find 0"
   in
-  [ (zero, '0')
-  ; (one, '1')
-  ; (two, '2')
-  ; (three, '3')
-  ; (four, '4')
-  ; (five, '5')
-  ; (six, '6')
-  ; (seven, '7')
-  ; (eight, '8')
-  ; (nine, '9')
-  ]
-
-let lookup key list =
-  List.find list ~f:(fun (k, _) -> Set.equal key k)
-  |> Option.map ~f:snd
-  |> Option.value_exn
-       ~message:("key not found: " ^ (key |> Set.to_list |> String.of_char_list))
+  Map.of_alist_exn
+    (module Digit)
+    [ (zero, '0')
+    ; (one, '1')
+    ; (two, '2')
+    ; (three, '3')
+    ; (four, '4')
+    ; (five, '5')
+    ; (six, '6')
+    ; (seven, '7')
+    ; (eight, '8')
+    ; (nine, '9')
+    ]
 
 let to_number digits output =
   output
-  |> List.map ~f:(fun num -> lookup num digits)
+  |> List.map ~f:(fun num -> Map.find_exn digits num)
   |> String.of_char_list
   |> Int.of_string
 
