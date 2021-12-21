@@ -109,23 +109,20 @@ let solve (nums: seq<Digit>) =
         |> Seq.tryFind (fun num -> not (num = six || num = nine))
         |> Option.defaultFailWith "failed to find 0"
 
-    [ (zero, '0')
-      (one, '1')
-      (two, '2')
-      (three, '3')
-      (four, '4')
-      (five, '5')
-      (six, '6')
-      (seven, '7')
-      (eight, '8')
-      (nine, '9') ]
-
-let lookup key list =
-    list |> List.find (fun (k, _) -> key = k) |> snd
+    Map.ofList [ (zero, '0')
+                 (one, '1')
+                 (two, '2')
+                 (three, '3')
+                 (four, '4')
+                 (five, '5')
+                 (six, '6')
+                 (seven, '7')
+                 (eight, '8')
+                 (nine, '9') ]
 
 let toNumber digits output =
     output
-    |> Seq.map (fun num -> lookup num digits)
+    |> Seq.map (fun num -> Map.find num digits)
     |> Array.ofSeq
     |> String
     |> int
