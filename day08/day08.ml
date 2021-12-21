@@ -124,8 +124,7 @@ let lookup key list =
   List.find list ~f:(fun (k, _) -> Set.equal key k)
   |> Option.map ~f:snd
   |> Option.value_exn
-       ~message:
-         ("key not found: " ^ (key |> Set.to_list |> String.of_char_list))
+       ~message:("key not found: " ^ (key |> Set.to_list |> String.of_char_list))
 
 let to_number digits output =
   output
