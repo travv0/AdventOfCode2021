@@ -1,6 +1,7 @@
-module Day3
+#r "nuget: fsharpplus, 1.2.2"
 
 open FSharpPlus
+open System.IO
 
 type Count =
     { Zeros: int
@@ -61,3 +62,59 @@ module Part2 =
 
     let co2ScrubberRating: seq<string> -> uint32 =
         calcRating (fun zeros ones -> if zeros > ones then '1' else '0')
+
+let fileName =
+    fsi.CommandLineArgs
+    |> Array.tail
+    |> tryHead
+    |> Option.defaultValue "input.txt"
+
+let input = File.ReadLines(fileName)
+let counts = Part1.counts input
+
+printfn "The power consumption of the submarine is %d" (Part1.gammaRate counts * Part1.epsilonRate counts)
+
+printfn
+    "The life support rating of the submarine is %d"
+    (Part2.oxygenGeneratorRating input
+     * Part2.co2ScrubberRating input)
+
+module Tests =
+    let input =
+        "00100
+    11110
+    10110
+    10111
+    10101
+    01111
+    00111
+    11100
+    10000
+    11001
+    00010
+    01010"
+            .Split([| '\n' |])
+        |> Array.map (fun s -> s.Trim())
+
+    let counts = Part1.counts input
+
+    let run () =
+        printfn
+            "%A"
+            {| Expected = 22u
+               Actual = Part1.gammaRate counts |}
+
+        printfn
+            "%A"
+            {| Expected = 9u
+               Actual = Part1.epsilonRate counts |}
+
+        printfn
+            "%A"
+            {| Expected = 23u
+               Actual = Part2.oxygenGeneratorRating input |}
+
+        printfn
+            "%A"
+            {| Expected = 10u
+               Actual = Part2.co2ScrubberRating input |}
