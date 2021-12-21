@@ -6,22 +6,22 @@ let flashes = ref 0
 let x_length (octos : 'a array array) = Array.length octos
 let y_length (octos : 'a array array) = Array.length octos.(0)
 
-let rec incEnergy octos x y =
+let rec inc_energy octos x y =
   octos.(x).(y) <- octos.(x).(y) + 1;
   if octos.(x).(y) = 10 then flash octos x y
 
 and flash octos x y =
   flashes := !flashes + 1;
-  for flashX = max (x - 1) 0 to min (x + 1) (x_length octos - 1) do
-    for flashY = max (y - 1) 0 to min (y + 1) (y_length octos - 1) do
-      if flashX <> x || flashY <> y then incEnergy octos flashX flashY
+  for flash_x = max (x - 1) 0 to min (x + 1) (x_length octos - 1) do
+    for flash_y = max (y - 1) 0 to min (y + 1) (y_length octos - 1) do
+      if flash_x <> x || flash_y <> y then inc_energy octos flash_x flash_y
     done
   done
 
 let step octos =
   for x = 0 to x_length octos - 1 do
     for y = 0 to y_length octos - 1 do
-      if octos.(x).(y) < 10 then incEnergy octos x y
+      if octos.(x).(y) < 10 then inc_energy octos x y
     done
   done;
 
@@ -52,30 +52,30 @@ let parse input =
              octos.(x).(y) <- sprintf "%c" c |> Int.of_string));
   octos
 
-let runSteps n octos =
+let run_steps n octos =
   flashes := 0;
   for _ = 1 to n do
     step octos
   done;
   !flashes
 
-let findSyncronizedFlash octos =
-  let stepCount = ref 0 and syncronized = ref false in
+let find_syncronized_flash octos =
+  let step_count = ref 0 and syncronized = ref false in
   while not !syncronized do
     step octos;
-    stepCount := !stepCount + 1;
+    step_count := !step_count + 1;
     syncronized :=
       octos |> Array.for_all ~f:(fun col -> col |> Array.for_all ~f:(( = ) 0))
   done;
-  !stepCount
+  !step_count
 
 let octos () = parse input
 
 let () =
   octos ()
-  |> runSteps 100
+  |> run_steps 100
   |> printf "After 100 steps, there have been a total of %d flashes\n";
 
   octos ()
-  |> findSyncronizedFlash
+  |> find_syncronized_flash
   |> printf "The first time all octopuses flash simultaneously is step %d\n"
