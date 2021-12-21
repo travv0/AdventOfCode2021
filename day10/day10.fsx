@@ -15,9 +15,9 @@ type LineType =
     | Incomplete of list<Token>
 
 let fileName =
-  match fsi.CommandLineArgs |> Array.toList with
-  | _ :: fn :: _ -> fn
-  | _ -> "input.txt"
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
 
 let tokenize =
     function
@@ -72,17 +72,17 @@ let processLine line =
         let rec go tokens =
             function
             | c :: line ->
-                (let token = tokenize c in
+                let token = tokenize c
 
-                 match token with
-                 | OpenParen
-                 | OpenBracket
-                 | OpenBrace
-                 | OpenPointy -> go (token :: tokens) line
-                 | _ ->
-                     (match tokens with
-                      | openingToken :: tokens when token |> closes openingToken -> go tokens line
-                      | _ -> Corrupted token))
+                match token with
+                | OpenParen
+                | OpenBracket
+                | OpenBrace
+                | OpenPointy -> go (token :: tokens) line
+                | _ ->
+                    match tokens with
+                    | openingToken :: tokens when token |> closes openingToken -> go tokens line
+                    | _ -> Corrupted token
             | [] -> Incomplete(autocomplete tokens)
 
         go [ tokenize c ] line
@@ -109,7 +109,9 @@ let scoreAutocomplete tokens =
 
     let rec go score =
         function
-        | token :: tokens -> let newScore = (score * 5I) + s token in go newScore tokens
+        | token :: tokens ->
+            let newScore = (score * 5I) + s token
+            go newScore tokens
         | _ -> score
 
     go 0I tokens
@@ -131,7 +133,6 @@ let autocompleteScores =
         | _ -> None)
     |> Seq.map scoreAutocomplete
     |> Seq.sort
-
 
 Seq.item (Seq.length autocompleteScores / 2) autocompleteScores
 |> printf "The middle autocomplete score is %A points\n"
