@@ -1,6 +1,4 @@
-﻿module Day11
-
-open System
+﻿open System
 open System.IO
 
 let mutable flashes = 0
