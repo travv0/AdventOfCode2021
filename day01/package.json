@@ -1,0 +1,21 @@
+{
+    "esy": {
+        "build": "dune build"
+    },
+    "scripts": {
+        "run": "esy b dune exec ./day1.exe",
+        "test": "esy dune test",
+        "promote": "esy dune promote",
+        "format": "dune build @fmt --auto-promote"
+    },
+    "dependencies": {
+        "ocaml": "*",
+        "@opam/dune": "*",
+        "@opam/base": "*",
+        "@opam/stdio": "*"
+    },
+    "devDependencies": {
+        "@opam/ocaml-lsp-server": "*",
+        "@opam/ocamlformat": "*"
+    }
+}
