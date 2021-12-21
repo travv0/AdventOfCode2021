@@ -42,6 +42,7 @@ packages:
 extra-deps:
 - directory-1.3.7.0@sha256:4d59f9714700e69d139084b47204fc91f13f31546aac39d666279996192b0d11,2940
 - time-1.12.1@sha256:af1fafc1fb66e3d0afb66fb5ab8629f74c038bebd42c234b581aff7abc201089,6295
+- unix-2.7.2.2
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
