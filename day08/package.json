@@ -3,8 +3,9 @@
         "build": "dune build"
     },
     "scripts": {
-        "run": "esy b dune exec ./day08.exe",
-        "test": "esy dune test",
+        "run": "esy b dune exec ./day8.exe",
+        "test": "esy b dune test",
+        "promote": "esy b dune promote",
         "format": "dune build @fmt --auto-promote"
     },
     "dependencies": {
@@ -14,7 +15,6 @@
         "@opam/stdio": "*"
     },
     "devDependencies": {
-        "@opam/ocaml-lsp-server": "*",
-        "@opam/ocamlformat": "*"
+        "@opam/ocaml-lsp-server": "*"
     }
 }

@@ -11,6 +11,6 @@
   > gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
   > EOF
 
-  $ ./day08.exe test
+  $ ./day8.exe test
   In the output values, the digits 1, 4, 7, and 8 appear 26 times
   Adding up all of the output values produces 61229

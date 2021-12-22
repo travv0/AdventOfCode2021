@@ -1,6 +1,6 @@
 (executable
- (name day08)
+ (name day8)
  (libraries base stdio))
 
 (cram
- (deps day08.exe))
+ (deps day8.exe))
