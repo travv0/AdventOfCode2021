@@ -2,16 +2,40 @@ open Base
 open Stdio
 open Printf
 
+module type Monoid = sig
+  type t
+
+  val empty : t
+  val append : t -> t -> t
+end
+
+module MonoidUtils (M : Monoid) = struct
+  include M
+
+  let ( ^^ ) x y = append x y
+  let concat xs = List.fold_left ~f:( ^^ ) ~init:empty xs
+end
+
 type count = { zeros : int; ones : int }
 
+module CountMonoid : Monoid with type t = count = struct
+  type t = count
+
+  let empty = { zeros = 0; ones = 0 }
+
+  let append { zeros = z1; ones = o1 } { zeros = z2; ones = o2 } =
+    { zeros = z1 + z2; ones = o1 + o2 }
+end
+
 module Count = struct
-  let zero = { zeros = 0; ones = 0 }
+  include MonoidUtils (CountMonoid)
 end
 
 let increment_count count bit =
+  let open Count in
   match bit with
-  | '0' -> { count with zeros = count.zeros + 1 }
-  | '1' -> { count with ones = count.ones + 1 }
+  | '0' -> count ^^ { empty with zeros = 1 }
+  | '1' -> count ^^ { empty with ones = 1 }
   | _ -> ksprintf failwith "Bad input bit %c" bit
 
 let count_bits = List.map2_exn ~f:increment_count
@@ -21,7 +45,7 @@ let counts input =
   input
   |> List.map ~f:String.to_list
   |> List.fold ~f:count_bits
-       ~init:(List.init num_length ~f:(Fn.const Count.zero))
+       ~init:(List.init num_length ~f:(Fn.const Count.empty))
 
 let calc_rate comp counts =
   let binary =
@@ -42,7 +66,7 @@ let calc_rating (rule : int -> int -> char) input =
 
   while List.length !result > 1 do
     let { zeros; ones } =
-      !result |> List.fold ~f:(count_bit !i) ~init:Count.zero
+      !result |> List.fold ~f:(count_bit !i) ~init:Count.empty
     in
     result :=
       !result |> List.filter ~f:(fun num -> Char.(num.[!i] = rule zeros ones));
