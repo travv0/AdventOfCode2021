@@ -11,7 +11,7 @@ let parse_command command =
   | "up" -> Up
   | _ -> ksprintf failwith "Invalid command: %s" command
 
-let parseLine line =
+let parse_line line =
   match String.split line ~on:' ' with
   | [ command; units ] -> Some (parse_command command, Int.of_string units)
   | _ -> None
@@ -21,25 +21,25 @@ let file_name =
   | _ :: fn :: _ -> fn
   | _ -> "input.txt"
 
-let commands = In_channel.read_lines file_name |> List.filter_map ~f:parseLine
+let commands = In_channel.read_lines file_name |> List.filter_map ~f:parse_line
 
 module Part1 = struct
   type coords = { depth : int; position : int }
 
-  let moveSub coords (command, units) =
+  let move_sub coords (command, units) =
     match command with
     | Forward -> { coords with position = coords.position + units }
     | Down -> { coords with depth = coords.depth + units }
     | Up -> { coords with depth = coords.depth - units }
 
   let coords =
-    commands |> List.fold ~f:moveSub ~init:{ position = 0; depth = 0 }
+    commands |> List.fold ~f:move_sub ~init:{ position = 0; depth = 0 }
 end
 
 module Part2 = struct
   type coords = { depth : int; position : int; aim : int }
 
-  let moveSub coords (command, units) =
+  let move_sub coords (command, units) =
     match command with
     | Forward ->
         { coords with
@@ -50,7 +50,7 @@ module Part2 = struct
     | Up -> { coords with aim = coords.aim - units }
 
   let coords =
-    commands |> List.fold ~f:moveSub ~init:{ position = 0; depth = 0; aim = 0 }
+    commands |> List.fold ~f:move_sub ~init:{ position = 0; depth = 0; aim = 0 }
 end
 
 let () =

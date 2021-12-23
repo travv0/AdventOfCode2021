@@ -21,16 +21,11 @@ let count_increases = function
 
 let tails l =
   let rec tails' l acc =
-    match l with
-    | [] -> acc |> List.rev
-    | _ :: rest -> tails' rest (l :: acc)
+    match l with [] -> acc |> List.rev | _ :: rest -> tails' rest (l :: acc)
   in
   tails' l []
 
-let sum_group = function
-  | a :: b :: c :: _ -> Some (a + b + c)
-  | _ -> None
-
+let sum_group = function a :: b :: c :: _ -> Some (a + b + c) | _ -> None
 let sums = lines |> tails |> List.filter_map ~f:sum_group
 
 let () =
