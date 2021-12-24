@@ -35,10 +35,12 @@ let fill_line line =
 
   if line.start.x = line.end_.x then
     let y1, y2 = sort (line.start.y, line.end_.y) in
+
     List.range ~stop:`inclusive y1 y2
     |> List.map ~f:(fun y -> { x = line.start.x; y })
   else if line.start.y = line.end_.y then
     let x1, x2 = sort (line.start.x, line.end_.x) in
+
     List.range ~stop:`inclusive x1 x2
     |> List.map ~f:(fun x -> { x; y = line.start.y })
   else
@@ -52,6 +54,7 @@ let fill_line line =
         ~stride:(if line.start.y < line.end_.y then 1 else -1)
         line.start.y line.end_.y
     in
+
     List.map2_exn xs ys ~f:(fun x y -> { x; y })
 
 let is_horizontal_or_vertical line =
