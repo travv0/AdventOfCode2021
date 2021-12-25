@@ -70,7 +70,7 @@ let calc_overlaps lines =
            String.compare (sprintf "%d,%d" a.x a.y) (sprintf "%d,%d" b.x b.y))
     |> of_list
     |> group ~break:(fun a b -> a.x <> b.x || a.y <> b.y)
-    |> map ~f:(List.count ~f:(Fn.const true))
+    |> map ~f:List.length
     |> count ~f:(( < ) 1))
 
 let () =

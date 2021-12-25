@@ -85,7 +85,7 @@ let get_basin x y map =
 
   let locations_to_check = ref @@ get_basin_adjacents x y in
 
-  while Set.count ~f:(Fn.const true) !locations_to_check > 0 do
+  while Set.length !locations_to_check > 0 do
     let locs = !locations_to_check |> Set.to_list in
     let location = List.hd_exn locs in
     locations_to_check :=

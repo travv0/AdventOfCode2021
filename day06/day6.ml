@@ -24,7 +24,7 @@ module List = struct
       |> map ~f
       |> sort ~compare:compare_arg
       |> group ~break
-      |> map ~f:(fun a -> (List.hd_exn a, count a ~f:(Fn.const true))))
+      |> map ~f:(fun a -> (List.hd_exn a, length a)))
 end
 
 let parse_input (input : string) : fishes =
