@@ -31,46 +31,46 @@ let parse_input (input : string) =
 let lines = parse_input input
 
 let fill_line line =
+  let open List in
   let sort (a, b) = if a < b then (a, b) else (b, a) in
 
   if line.start.x = line.end_.x then
     let y1, y2 = sort (line.start.y, line.end_.y) in
 
-    List.range ~stop:`inclusive y1 y2
-    |> List.map ~f:(fun y -> { x = line.start.x; y })
+    range ~stop:`inclusive y1 y2 |> map ~f:(fun y -> { x = line.start.x; y })
   else if line.start.y = line.end_.y then
     let x1, x2 = sort (line.start.x, line.end_.x) in
 
-    List.range ~stop:`inclusive x1 x2
-    |> List.map ~f:(fun x -> { x; y = line.start.y })
+    range ~stop:`inclusive x1 x2 |> map ~f:(fun x -> { x; y = line.start.y })
   else
     let xs =
-      List.range ~stop:`inclusive
+      range ~stop:`inclusive
         ~stride:(if line.start.x < line.end_.x then 1 else -1)
         line.start.x line.end_.x
     in
     let ys =
-      List.range ~stop:`inclusive
+      range ~stop:`inclusive
         ~stride:(if line.start.y < line.end_.y then 1 else -1)
         line.start.y line.end_.y
     in
 
-    List.map2_exn xs ys ~f:(fun x y -> { x; y })
+    map2_exn xs ys ~f:(fun x y -> { x; y })
 
 let is_horizontal_or_vertical line =
   line.start.x = line.end_.x || line.start.y = line.end_.y
 
 let calc_overlaps lines =
-  let coords =
-    Sequence.(
-      lines |> of_list |> map ~f:(fill_line >> of_list) |> concat |> to_list)
-  in
-  List.(
-    coords
-    |> sort ~compare:(fun a b ->
+  Sequence.(
+    lines
+    |> of_list
+    |> map ~f:(fill_line >> of_list)
+    |> concat
+    |> to_list
+    |> List.sort ~compare:(fun a b ->
            String.compare (sprintf "%d,%d" a.x a.y) (sprintf "%d,%d" b.x b.y))
+    |> of_list
     |> group ~break:(fun a b -> a.x <> b.x || a.y <> b.y)
-    |> map ~f:(count ~f:(Fn.const true))
+    |> map ~f:(List.count ~f:(Fn.const true))
     |> count ~f:(( < ) 1))
 
 let () =

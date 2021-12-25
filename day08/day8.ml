@@ -11,8 +11,7 @@ let file_name =
   | _ :: fn :: _ -> fn
   | _ -> "input.txt"
 
-let input = In_channel.read_all file_name
-let lines = input |> String.strip |> String.split ~on:'\n' |> Sequence.of_list
+let lines = In_channel.read_lines file_name
 
 module Digit = struct
   module T = struct
@@ -27,29 +26,27 @@ module Digit = struct
 end
 
 let digits =
+  let open List in
+  let strip = String.strip and split = String.split in
   lines
-  |> Sequence.map ~f:(fun line ->
-         match
-           line
-           |> String.strip
-           |> String.split ~on:'|'
-           |> List.map ~f:String.strip
-         with
+  |> map ~f:(fun line ->
+         match line |> strip |> split ~on:'|' |> map ~f:strip with
          | [ input; output ] ->
-             ( String.split ~on:' ' input
-               |> List.map ~f:(String.to_list >> Set.of_list (module Char))
-             , String.split ~on:' ' output
-               |> List.map ~f:(String.to_list >> Set.of_list (module Char)) )
+             ( split ~on:' ' input
+               |> map ~f:(String.to_list >> Set.of_list (module Char))
+             , split ~on:' ' output
+               |> map ~f:(String.to_list >> Set.of_list (module Char)) )
          | _ -> failwithf "bad parse of line %s" line ())
 
 let digits_with_unique_num_of_segments =
-  digits
-  |> Sequence.fold ~init:Sequence.empty ~f:(fun accum a ->
-         a |> snd |> Sequence.of_list |> Sequence.append accum)
-  |> Sequence.filter ~f:(fun num ->
-         let n = Set.length num in
-         n = 2 || n = 3 || n = 4 || n = 7)
-  |> Sequence.to_list
+  Sequence.(
+    digits
+    |> of_list
+    |> fold ~init:empty ~f:(fun accum a -> a |> snd |> of_list |> append accum)
+    |> filter ~f:(fun num ->
+           let n = Set.length num in
+           n = 2 || n = 3 || n = 4 || n = 7)
+    |> to_list)
 
 let solve nums =
   let five_segment_nums =
@@ -146,8 +143,8 @@ let () =
   |> printf "In the output values, the digits 1, 4, 7, and 8 appear %d times\n";
 
   digits
-  |> Sequence.map ~f:(fun (input, output) ->
+  |> List.map ~f:(fun (input, output) ->
          let digits = solve input in
          to_number digits output)
-  |> Sequence.fold ~init:0 ~f:( + )
+  |> List.fold ~init:0 ~f:( + )
   |> printf "Adding up all of the output values produces %d\n"

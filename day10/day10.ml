@@ -111,24 +111,22 @@ let score_autocomplete tokens =
 
 let () =
   let processed_lines = lines |> List.map ~f:process_line in
-  processed_lines
-  |> Sequence.of_list
-  |> Sequence.filter_map ~f:(function
-       | Corrupted token -> Some token
-       | _ -> None)
-  |> Sequence.map ~f:score_syntax_error
-  |> Sequence.reduce_exn ~f:( + )
-  |> printf "The total syntax error score is %d points\n";
+  Sequence.(
+    processed_lines
+    |> of_list
+    |> filter_map ~f:(function Corrupted token -> Some token | _ -> None)
+    |> map ~f:score_syntax_error
+    |> reduce_exn ~f:( + )
+    |> printf "The total syntax error score is %d points\n");
 
   let autocomplete_scores =
-    processed_lines
-    |> Sequence.of_list
-    |> Sequence.filter_map ~f:(function
-         | Incomplete tokens -> Some tokens
-         | _ -> None)
-    |> Sequence.map ~f:score_autocomplete
-    |> Sequence.to_list
-    |> List.sort ~compare:Int.compare
+    Sequence.(
+      processed_lines
+      |> of_list
+      |> filter_map ~f:(function Incomplete tokens -> Some tokens | _ -> None)
+      |> map ~f:score_autocomplete
+      |> to_list
+      |> List.sort ~compare:Int.compare)
   in
   List.length autocomplete_scores / 2
   |> List.nth_exn autocomplete_scores

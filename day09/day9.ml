@@ -86,14 +86,12 @@ let get_basin x y map =
   let locations_to_check = ref @@ get_basin_adjacents x y in
 
   while Set.count ~f:(Fn.const true) !locations_to_check > 0 do
-    let loc_seq = !locations_to_check |> Set.to_sequence in
-    let location = Sequence.hd_exn loc_seq in
+    let locs = !locations_to_check |> Set.to_list in
+    let location = List.hd_exn locs in
     locations_to_check :=
       Set.union
         (location ||> get_basin_adjacents)
-        (Sequence.drop loc_seq 1
-        |> Sequence.to_list
-        |> Set.of_list (module Int_pair));
+        (List.tl_exn locs |> Set.of_list (module Int_pair));
     seen := Set.add !seen location
   done;
 
@@ -102,9 +100,7 @@ let get_basin x y map =
 let find_three_largest_basins map =
   let sorted_basins =
     find_low_points map
-    |> Sequence.of_list
-    |> Sequence.map ~f:(fun (x, y) -> get_basin x y map |> List.length)
-    |> Sequence.to_list
+    |> List.map ~f:(fun (x, y) -> get_basin x y map |> List.length)
     |> List.sort ~compare:(fun a b -> neg @@ Int.compare a b)
   in
   List.take sorted_basins 3
