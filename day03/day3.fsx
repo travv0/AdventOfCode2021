@@ -1,6 +1,3 @@
-#r "nuget: fsharpplus, 1.2.2"
-
-open FSharpPlus
 open System.IO
 
 type Count =
@@ -14,18 +11,18 @@ type Count =
 
 let incrementCount count bit =
     match bit with
-    | '0' -> count ++ { zero with Zeros = 1 }
-    | '1' -> count ++ { zero with Ones = 1 }
+    | '0' -> count + { Count.Zero with Zeros = 1 }
+    | '1' -> count + { Count.Zero with Ones = 1 }
     | _ -> failwithf "Bad input bit %c" bit
 
 module Part1 =
     let countBits: seq<Count> -> seq<char> -> seq<Count> = Seq.map2 incrementCount
 
     let counts (input: seq<string>) =
-        let numLength = input |> head |> length
+        let numLength = input |> Seq.head |> Seq.length
 
         input
-        |> fold countBits (Seq.replicate numLength zero)
+        |> Seq.fold countBits (Seq.replicate numLength Count.Zero)
 
     let calcRate comp counts =
         let binary =
@@ -43,15 +40,16 @@ module Part2 =
     let countBit index acc (num: string) = incrementCount acc num.[index]
 
     let calcRating rule input =
-        let mutable result = input |> toList
+        let mutable result = input |> Seq.toList
         let mutable i = 0
 
-        while length result > 1 do
-            let { Zeros = zeros; Ones = ones } = result |> fold (countBit i) zero
+        while List.length result > 1 do
+            let { Zeros = zeros; Ones = ones } =
+                result |> List.fold (countBit i) Count.Zero
 
             result <-
                 result
-                |> filter (fun num -> num.[i] = rule zeros ones)
+                |> List.filter (fun num -> num.[i] = rule zeros ones)
 
             i <- i + 1
 
@@ -66,7 +64,7 @@ module Part2 =
 let fileName =
     fsi.CommandLineArgs
     |> Array.tail
-    |> tryHead
+    |> Array.tryHead
     |> Option.defaultValue "input.txt"
 
 let input = File.ReadLines(fileName)
