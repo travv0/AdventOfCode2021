@@ -12,7 +12,7 @@ module Int_pair = struct
     type t = int * int
 
     let compare (a1, b1) (a2, b2) =
-      String.compare (sprintf "%d,%d" a1 b1) (sprintf "%d,%d" a2 b2)
+      List.compare Int.compare [ a1; b1 ] [ a2; b2 ]
 
     let sexp_of_t (a, b) = List.sexp_of_t Int.sexp_of_t [ a; b ]
   end

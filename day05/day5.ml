@@ -67,7 +67,7 @@ let calc_overlaps lines =
     |> concat
     |> to_list
     |> List.sort ~compare:(fun a b ->
-           String.compare (sprintf "%d,%d" a.x a.y) (sprintf "%d,%d" b.x b.y))
+           List.compare Int.compare [ a.x; a.y ] [ b.x; b.y ])
     |> of_list
     |> group ~break:(fun a b -> a.x <> b.x || a.y <> b.y)
     |> map ~f:List.length

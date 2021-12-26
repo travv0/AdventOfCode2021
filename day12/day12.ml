@@ -31,11 +31,7 @@ module List_of_string = struct
   module T = struct
     type t = string list
 
-    let compare l1 l2 =
-      String.compare
-        (List.fold ~init:"" ~f:(fun acc a -> acc ^ "," ^ a) l1)
-        (List.fold ~init:"" ~f:(fun acc a -> acc ^ "," ^ a) l2)
-
+    let compare l1 l2 = List.compare String.compare l1 l2
     let sexp_of_t l = List.sexp_of_t String.sexp_of_t l
   end
 
