@@ -11,14 +11,20 @@ let input = In_channel.read_all file_name
 
 type node = (int * int) * int
 
-module Node = struct
+module Node (M : sig
+  type t
+
+  val compare : t -> t -> int
+  val sexp_of_t : t -> Sexp.t
+end) =
+struct
   module T = struct
-    type t = node
+    type t = M.t * int
 
-    let compare ((x1, y1), f1) ((x2, y2), f2) =
-      List.compare Int.compare [ f1; x1; y1 ] [ f2; x2; y2 ]
+    let compare (elem1, f1) (elem2, f2) =
+      match Int.compare f1 f2 with 0 -> M.compare elem1 elem2 | r -> r
 
-    let sexp_of_t ((x, y), f) = List.sexp_of_t Int.sexp_of_t [ x; y; f ]
+    let sexp_of_t (elem, f) = Sexp.List [ M.sexp_of_t elem; Int.sexp_of_t f ]
   end
 
   include T
@@ -38,6 +44,8 @@ module Coords = struct
   include T
   include Comparator.Make (T)
 end
+
+module CoordsNode = Node (Coords)
 
 let parse_input input =
   input |> String.split_lines
@@ -103,7 +111,7 @@ let neighbors max_x max_y (x, y) : ((int * int) * int) list =
 let () =
   let max_x = cave_width - 1 and max_y = cave_height - 1 in
   astar
-    (module Node)
+    (module CoordsNode)
     (module Coords)
     ~start:(0, 0) ~goal:(max_x, max_y)
     ~h:(heuristic (max_x, max_y))
@@ -117,7 +125,7 @@ let () =
 
   let max_x = (cave_width * 5) - 1 and max_y = (cave_height * 5) - 1 in
   astar
-    (module Node)
+    (module CoordsNode)
     (module Coords)
     ~start:(0, 0) ~goal:(max_x, max_y)
     ~h:(heuristic (max_x, max_y))
