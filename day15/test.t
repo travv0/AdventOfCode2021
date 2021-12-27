@@ -13,3 +13,4 @@
 
   $ ./day15.exe test
   The lowest total risk of any path from the top left to the bottom right is 40
+  Using the full map, the lowest total risk of any path from the top left to the bottom right is 315
