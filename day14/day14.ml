@@ -9,37 +9,9 @@ let file_name =
 
 let input = In_channel.read_all file_name
 
-module CharList = struct
-  module T = struct
-    type t = char list
-
-    let compare = List.compare Char.compare
-    let sexp_of_t = List.sexp_of_t Char.sexp_of_t
-  end
-
-  include T
-  include Comparator.Make (T)
-end
-
-type parse_result = {
-  polymer : char list;
-  rules : (char list, char, CharList.comparator_witness) Map.t;
-}
-
-let parse_input input : parse_result =
-  match Str.split (Str.regexp "\r?\n\r?\n") input with
-  | [ polymer; rules ] ->
-      let polymer = String.to_list polymer in
-      let rules =
-        rules |> String.split_lines
-        |> List.map ~f:(fun line ->
-               match Str.split (Str.regexp " -> ") line with
-               | [ from; to_ ] -> (String.to_list from, to_.[0])
-               | _ -> failwithf "bad parse: %s" line ())
-        |> Map.of_alist_exn (module CharList)
-      in
-      { polymer; rules }
-  | _ -> failwithf "bad parse: %s" input ()
+type polymer = (string, int, String.comparator_witness) Map.t
+type rules = (string, char, String.comparator_witness) Map.t
+type parse_result = { polymer : polymer; rules : rules }
 
 let tails l =
   let rec tails' l acc =
@@ -47,29 +19,57 @@ let tails l =
   in
   tails' l []
 
-let first_insertion rules = function
-  | c1 :: c2 :: _ -> Map.find rules [ c1; c2 ]
-  | _ -> None
+let make_polymer s =
+  s |> String.to_list |> tails
+  |> List.filter_map ~f:(function
+       | a :: b :: _ -> Some (String.of_char_list [ a; b ], 1)
+       | a :: _ -> Some (String.of_char_list [ a; ' ' ], 1)
+       | _ -> None)
+  |> Map.of_alist_fold (module String) ~init:0 ~f:( + )
 
-let step rules polymer =
-  let insertions = polymer |> tails |> List.map ~f:(first_insertion rules) in
-  List.map2_exn polymer insertions ~f:(fun c1 c2 -> [ Some c1; c2 ])
-  |> List.concat |> List.filter_opt
+let parse_input input : parse_result =
+  match Str.split (Str.regexp "\r?\n\r?\n") input with
+  | [ polymer; rules ] ->
+      let polymer = make_polymer polymer in
+      let rules =
+        rules |> String.split_lines
+        |> List.map ~f:(fun line ->
+               match Str.split (Str.regexp " -> ") line with
+               | [ from; to_ ] -> (from, to_.[0])
+               | _ -> failwithf "bad parse: %s" line ())
+        |> Map.of_alist_exn (module String)
+      in
+      { polymer; rules }
+  | _ -> failwithf "bad parse: %s" input ()
 
-let rec step_times n rules polymer =
+let update_polymer rules (k, v) =
+  match Map.find rules k with
+  | Some insertion ->
+      [ [ k.[0]; insertion ]; [ insertion; k.[1] ] ]
+      |> List.map ~f:(fun l -> (String.of_char_list l, v))
+  | None -> [ (k, v) ]
+
+let step (rules : rules) polymer : polymer =
+  polymer |> Map.to_alist
+  |> List.concat_map ~f:(update_polymer rules)
+  |> Map.of_alist_fold (module String) ~init:0 ~f:( + )
+
+let rec step_times n (rules : rules) polymer =
   if n < 1 then polymer else step_times (n - 1) rules (step rules polymer)
 
 let { rules; polymer } = parse_input input
 
 let subtract_least_common_from_most_common polymer =
+  let open List in
   let sorted =
-    polymer
-    |> List.sort ~compare:Char.compare
-    |> List.group ~break:Char.( <> )
-    |> List.sort ~compare:(fun a b -> List.length a - List.length b)
+    polymer |> Map.to_alist
+    |> map ~f:(fun (a, b) -> (a.[0], b))
+    |> Map.of_alist_fold (module Char) ~init:0 ~f:( + )
+    |> Map.to_alist
+    |> sort ~compare:(fun (_, b1) (_, b2) -> b1 - b2)
   in
-  let least = List.hd_exn sorted and most = List.last_exn sorted in
-  List.length most - List.length least
+  let least = hd_exn sorted and most = last_exn sorted in
+  snd most - snd least
 
 let () =
   step_times 10 rules polymer
