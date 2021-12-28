@@ -9,35 +9,9 @@ let file_name =
 
 let input = In_channel.read_all file_name
 
-type 'a node = { elem : 'a; f : int }
-
-module type Elem = sig
-  include Comparator.S
-
-  val compare : t -> t -> int
-  val sexp_of_t : t -> Sexp.t
-  val heuristic : t -> t -> int
-  val ( = ) : t -> t -> bool
-  val neighbors : t -> (t * int) list
-end
-
-module Node (M : Elem) = struct
-  module T = struct
-    type t = M.t node
-
-    let compare { elem = elem1; f = f1 } { elem = elem2; f = f2 } =
-      match Int.compare f1 f2 with 0 -> M.compare elem1 elem2 | r -> r
-
-    let sexp_of_t { elem; f } = Sexp.List [ M.sexp_of_t elem; Int.sexp_of_t f ]
-  end
-
-  include T
-  include Comparator.Make (T)
-end
-
 module CoordsElem = struct
   module type S = sig
-    include Elem
+    include Astar.Elem
 
     val make : int -> int -> t
   end
@@ -70,47 +44,6 @@ let parse_input input =
          |> Array.map ~f:(fun c -> sprintf "%c" c |> Int.of_string))
   |> List.to_array
 
-let astar (type a) (elem : (module Elem with type t = a)) (start : a) (goal : a)
-    =
-  let module Elem = (val elem) in
-  let module ElemNode = Node (Elem) in
-  let h = Elem.heuristic goal in
-  let open_set =
-    ref @@ Set.singleton (module ElemNode) { elem = start; f = h start }
-  in
-  let came_from = ref @@ Map.empty (module Elem) in
-
-  let g_score_map = ref @@ Map.singleton (module Elem) start 0 in
-  let g_score node =
-    Map.find !g_score_map node |> Option.value ~default:Int.max_value
-  in
-
-  let result = ref None in
-
-  while Option.is_none !result && (not @@ Set.is_empty !open_set) do
-    let current = Set.min_elt_exn !open_set in
-    if Elem.(current.elem = goal) then result := Some current
-    else (
-      open_set := Set.remove_index !open_set 0;
-      current.elem |> Elem.neighbors
-      |> List.iter ~f:(fun (neighbor, d) ->
-             let tentative_g_score = g_score current.elem + d in
-             if tentative_g_score < g_score neighbor then (
-               came_from := Map.update !came_from neighbor ~f:(Fn.const current);
-               g_score_map :=
-                 Map.update !g_score_map neighbor
-                   ~f:(Fn.const tentative_g_score);
-               let f_score = tentative_g_score + h neighbor in
-               if
-                 not
-                 @@ Set.exists !open_set ~f:(fun { elem; _ } ->
-                        Elem.(elem = neighbor))
-               then
-                 open_set := Set.add !open_set { elem = neighbor; f = f_score })))
-  done;
-
-  !result
-
 let cave = parse_input input
 let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 let cave_width = Array.length cave
@@ -135,9 +68,8 @@ let neighbors max_x max_y (x, y) : ((int * int) * int) list =
 let () =
   let max_x = cave_width - 1 and max_y = cave_height - 1 in
   let module Coords = (val CoordsElem.make (neighbors max_x max_y)) in
-  astar (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
-  |> Option.value_exn
-  |> (fun { f; _ } -> f)
+  Astar.path (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
+  |> Option.value_exn |> snd
   |> printf
        "The lowest total risk of any path from the top left to the bottom \
         right is %d\n"
@@ -145,9 +77,8 @@ let () =
 let () =
   let max_x = (cave_width * 5) - 1 and max_y = (cave_height * 5) - 1 in
   let module Coords = (val CoordsElem.make (neighbors max_x max_y)) in
-  astar (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
-  |> Option.value_exn
-  |> (fun { f; _ } -> f)
+  Astar.path (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
+  |> Option.value_exn |> snd
   |> printf
        "Using the full map, the lowest total risk of any path from the top \
         left to the bottom right is %d\n"
