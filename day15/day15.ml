@@ -16,6 +16,9 @@ module type Elem = sig
 
   val compare : t -> t -> int
   val sexp_of_t : t -> Sexp.t
+  val heuristic : t -> t -> int
+  val ( = ) : t -> t -> bool
+  val neighbors : t -> (t * int) list
 end
 
 module Node (M : Elem) = struct
@@ -32,18 +35,32 @@ module Node (M : Elem) = struct
   include Comparator.Make (T)
 end
 
-module Coords : Elem with type t = int * int = struct
-  module T = struct
-    type t = int * int
+module CoordsElem = struct
+  module type S = sig
+    include Elem
 
-    let compare (x1, y1) (x2, y2) =
-      List.compare Int.compare [ x1; y1 ] [ x2; y2 ]
-
-    let sexp_of_t (x, y) = List.sexp_of_t Int.sexp_of_t [ x; y ]
+    val make : int -> int -> t
   end
 
-  include T
-  include Comparator.Make (T)
+  let make neighbors =
+    (module struct
+      module T = struct
+        type t = int * int
+
+        let compare (x1, y1) (x2, y2) =
+          List.compare Int.compare [ x1; y1 ] [ x2; y2 ]
+
+        let sexp_of_t (x, y) = List.sexp_of_t Int.sexp_of_t [ x; y ]
+      end
+
+      include T
+      include Comparator.Make (T)
+
+      let make x y : t = (x, y)
+      let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
+      let ( = ) (x1, y1) (x2, y2) = x1 = x2 && y1 = y2
+      let neighbors = neighbors
+    end : S)
 end
 
 let parse_input input =
@@ -53,29 +70,29 @@ let parse_input input =
          |> Array.map ~f:(fun c -> sprintf "%c" c |> Int.of_string))
   |> List.to_array
 
-let astar (type a) (elem : (module Elem with type t = a)) ~(start : a)
-    ~(goal : a) ~(h : a -> int) ~(eq : a -> a -> bool)
-    ~(neighbors : a -> (a * int) list) =
+let astar (type a) (elem : (module Elem with type t = a)) (start : a) (goal : a)
+    =
   let module Elem = (val elem) in
-  let module Node = Node (Elem) in
+  let module ElemNode = Node (Elem) in
+  let h = Elem.heuristic goal in
   let open_set =
-    ref @@ Set.singleton (module Node) { elem = start; f = h start }
+    ref @@ Set.singleton (module ElemNode) { elem = start; f = h start }
   in
   let came_from = ref @@ Map.empty (module Elem) in
 
   let g_score_map = ref @@ Map.singleton (module Elem) start 0 in
   let g_score node =
-    match Map.find !g_score_map node with Some g -> g | None -> Int.max_value
+    Map.find !g_score_map node |> Option.value ~default:Int.max_value
   in
 
   let result = ref None in
 
   while Option.is_none !result && (not @@ Set.is_empty !open_set) do
     let current = Set.min_elt_exn !open_set in
-    if eq current.elem goal then result := Some current
+    if Elem.(current.elem = goal) then result := Some current
     else (
       open_set := Set.remove_index !open_set 0;
-      current.elem |> neighbors
+      current.elem |> Elem.neighbors
       |> List.iter ~f:(fun (neighbor, d) ->
              let tentative_g_score = g_score current.elem + d in
              if tentative_g_score < g_score neighbor then (
@@ -87,7 +104,7 @@ let astar (type a) (elem : (module Elem with type t = a)) ~(start : a)
                if
                  not
                  @@ Set.exists !open_set ~f:(fun { elem; _ } ->
-                        eq elem neighbor)
+                        Elem.(elem = neighbor))
                then
                  open_set := Set.add !open_set { elem = neighbor; f = f_score })))
   done;
@@ -117,25 +134,18 @@ let neighbors max_x max_y (x, y) : ((int * int) * int) list =
 
 let () =
   let max_x = cave_width - 1 and max_y = cave_height - 1 in
-  astar
-    (module Coords)
-    ~start:(0, 0) ~goal:(max_x, max_y)
-    ~h:(heuristic (max_x, max_y))
-    ~eq:(fun (x1, y1) (x2, y2) -> x1 = x2 && y1 = y2)
-    ~neighbors:(neighbors max_x max_y)
+  let module Coords = (val CoordsElem.make (neighbors max_x max_y)) in
+  astar (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
   |> Option.value_exn
   |> (fun { f; _ } -> f)
   |> printf
        "The lowest total risk of any path from the top left to the bottom \
-        right is %d\n";
+        right is %d\n"
 
+let () =
   let max_x = (cave_width * 5) - 1 and max_y = (cave_height * 5) - 1 in
-  astar
-    (module Coords)
-    ~start:(0, 0) ~goal:(max_x, max_y)
-    ~h:(heuristic (max_x, max_y))
-    ~eq:(fun (x1, y1) (x2, y2) -> x1 = x2 && y1 = y2)
-    ~neighbors:(neighbors max_x max_y)
+  let module Coords = (val CoordsElem.make (neighbors max_x max_y)) in
+  astar (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
   |> Option.value_exn
   |> (fun { f; _ } -> f)
   |> printf
