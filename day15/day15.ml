@@ -9,7 +9,7 @@ let file_name =
 
 let input = In_channel.read_all file_name
 
-type node = (int * int) * int
+type 'a node = { elem : 'a; f : int }
 
 module Node (M : sig
   type t
@@ -19,12 +19,12 @@ module Node (M : sig
 end) =
 struct
   module T = struct
-    type t = M.t * int
+    type t = M.t node
 
-    let compare (elem1, f1) (elem2, f2) =
+    let compare { elem = elem1; f = f1 } { elem = elem2; f = f2 } =
       match Int.compare f1 f2 with 0 -> M.compare elem1 elem2 | r -> r
 
-    let sexp_of_t (elem, f) = Sexp.List [ M.sexp_of_t elem; Int.sexp_of_t f ]
+    let sexp_of_t { elem; f } = Sexp.List [ M.sexp_of_t elem; Int.sexp_of_t f ]
   end
 
   include T
@@ -59,7 +59,7 @@ let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 
 let astar node_comp elem_comp ~(start : 'a) ~(goal : 'a) ~(h : 'a -> int)
     ~(eq : 'a -> 'a -> bool) ~(neighbors : 'a -> ('a * int) list) =
-  let open_set = ref @@ Set.singleton node_comp (start, h start) in
+  let open_set = ref @@ Set.singleton node_comp { elem = start; f = h start } in
   let came_from = ref @@ Map.empty elem_comp in
 
   let g_score_map = ref @@ Map.singleton elem_comp start 0 in
@@ -71,20 +71,24 @@ let astar node_comp elem_comp ~(start : 'a) ~(goal : 'a) ~(h : 'a -> int)
 
   while Option.is_none !result && (not @@ Set.is_empty !open_set) do
     let current = Set.min_elt_exn !open_set in
-    if eq (fst current) goal then result := Some current
+    if eq current.elem goal then result := Some current
     else (
       open_set := Set.remove_index !open_set 0;
-      current |> fst |> neighbors
+      current.elem |> neighbors
       |> List.iter ~f:(fun (neighbor, d) ->
-             let tentative_g_score = g_score (fst current) + d in
+             let tentative_g_score = g_score current.elem + d in
              if tentative_g_score < g_score neighbor then (
                came_from := Map.update !came_from neighbor ~f:(Fn.const current);
                g_score_map :=
                  Map.update !g_score_map neighbor
                    ~f:(Fn.const tentative_g_score);
                let f_score = tentative_g_score + h neighbor in
-               if not @@ Set.exists !open_set ~f:(fun (c, _) -> eq c neighbor)
-               then open_set := Set.add !open_set (neighbor, f_score))))
+               if
+                 not
+                 @@ Set.exists !open_set ~f:(fun { elem; _ } ->
+                        eq elem neighbor)
+               then
+                 open_set := Set.add !open_set { elem = neighbor; f = f_score })))
   done;
 
   !result
@@ -118,7 +122,7 @@ let () =
     ~eq:(fun (x1, y1) (x2, y2) -> x1 = x2 && y1 = y2)
     ~neighbors:(neighbors max_x max_y)
   |> Option.value_exn
-  |> (fun (_, cost) -> cost)
+  |> (fun { f; _ } -> f)
   |> printf
        "The lowest total risk of any path from the top left to the bottom \
         right is %d\n";
@@ -132,7 +136,7 @@ let () =
     ~eq:(fun (x1, y1) (x2, y2) -> x1 = x2 && y1 = y2)
     ~neighbors:(neighbors max_x max_y)
   |> Option.value_exn
-  |> (fun (_, cost) -> cost)
+  |> (fun { f; _ } -> f)
   |> printf
        "Using the full map, the lowest total risk of any path from the top \
         left to the bottom right is %d\n"
