@@ -11,13 +11,14 @@ let input = In_channel.read_all file_name
 
 type 'a node = { elem : 'a; f : int }
 
-module Node (M : sig
-  type t
+module type Elem = sig
+  include Comparator.S
 
   val compare : t -> t -> int
   val sexp_of_t : t -> Sexp.t
-end) =
-struct
+end
+
+module Node (M : Elem) = struct
   module T = struct
     type t = M.t node
 
@@ -31,7 +32,7 @@ struct
   include Comparator.Make (T)
 end
 
-module Coords = struct
+module Coords : Elem with type t = int * int = struct
   module T = struct
     type t = int * int
 
@@ -45,8 +46,6 @@ module Coords = struct
   include Comparator.Make (T)
 end
 
-module CoordsNode = Node (Coords)
-
 let parse_input input =
   input |> String.split_lines
   |> List.map ~f:(fun line ->
@@ -54,15 +53,17 @@ let parse_input input =
          |> Array.map ~f:(fun c -> sprintf "%c" c |> Int.of_string))
   |> List.to_array
 
-let cave = parse_input input
-let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
+let astar (type a) (elem : (module Elem with type t = a)) ~(start : a)
+    ~(goal : a) ~(h : a -> int) ~(eq : a -> a -> bool)
+    ~(neighbors : a -> (a * int) list) =
+  let module Elem = (val elem) in
+  let module Node = Node (Elem) in
+  let open_set =
+    ref @@ Set.singleton (module Node) { elem = start; f = h start }
+  in
+  let came_from = ref @@ Map.empty (module Elem) in
 
-let astar node_comp elem_comp ~(start : 'a) ~(goal : 'a) ~(h : 'a -> int)
-    ~(eq : 'a -> 'a -> bool) ~(neighbors : 'a -> ('a * int) list) =
-  let open_set = ref @@ Set.singleton node_comp { elem = start; f = h start } in
-  let came_from = ref @@ Map.empty elem_comp in
-
-  let g_score_map = ref @@ Map.singleton elem_comp start 0 in
+  let g_score_map = ref @@ Map.singleton (module Elem) start 0 in
   let g_score node =
     match Map.find !g_score_map node with Some g -> g | None -> Int.max_value
   in
@@ -93,6 +94,8 @@ let astar node_comp elem_comp ~(start : 'a) ~(goal : 'a) ~(h : 'a -> int)
 
   !result
 
+let cave = parse_input input
+let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 let cave_width = Array.length cave
 let cave_height = Array.length cave.(0)
 
@@ -115,7 +118,6 @@ let neighbors max_x max_y (x, y) : ((int * int) * int) list =
 let () =
   let max_x = cave_width - 1 and max_y = cave_height - 1 in
   astar
-    (module CoordsNode)
     (module Coords)
     ~start:(0, 0) ~goal:(max_x, max_y)
     ~h:(heuristic (max_x, max_y))
@@ -129,7 +131,6 @@ let () =
 
   let max_x = (cave_width * 5) - 1 and max_y = (cave_height * 5) - 1 in
   astar
-    (module CoordsNode)
     (module Coords)
     ~start:(0, 0) ~goal:(max_x, max_y)
     ~h:(heuristic (max_x, max_y))
