@@ -45,7 +45,8 @@ let parse_coords s =
 
 let parse_fold s =
   match
-    s |> String.split ~on:' '
+    s
+    |> String.split ~on:' '
     |> List.map ~f:(fun s -> s |> String.split ~on:'=')
   with
   | [ _; _; [ axis; coord ] ] ->
@@ -56,7 +57,9 @@ let parse_input input : parse_result =
   match input |> Str.split (Str.regexp "\r?\n\r?\n") with
   | [ coords; folds ] ->
       let paper =
-        coords |> String.split_lines |> List.map ~f:parse_coords
+        coords
+        |> String.split_lines
+        |> List.map ~f:parse_coords
         |> Set.of_list (module Coords)
       in
       let fold_queue = folds |> String.split_lines |> List.map ~f:parse_fold in

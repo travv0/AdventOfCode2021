@@ -38,9 +38,11 @@ module CoordsElem = struct
 end
 
 let parse_input input =
-  input |> String.split_lines
+  input
+  |> String.split_lines
   |> List.map ~f:(fun line ->
-         line |> String.to_array
+         line
+         |> String.to_array
          |> Array.map ~f:(fun c -> sprintf "%c" c |> Int.of_string))
   |> List.to_array
 
@@ -69,7 +71,8 @@ let () =
   let max_x = cave_width - 1 and max_y = cave_height - 1 in
   let module Coords = (val CoordsElem.make (neighbors max_x max_y)) in
   Astar.path (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
-  |> Option.value_exn |> snd
+  |> Option.value_exn
+  |> snd
   |> printf
        "The lowest total risk of any path from the top left to the bottom \
         right is %d\n"
@@ -78,7 +81,8 @@ let () =
   let max_x = (cave_width * 5) - 1 and max_y = (cave_height * 5) - 1 in
   let module Coords = (val CoordsElem.make (neighbors max_x max_y)) in
   Astar.path (module Coords) (Coords.make 0 0) (Coords.make max_x max_y)
-  |> Option.value_exn |> snd
+  |> Option.value_exn
+  |> snd
   |> printf
        "Using the full map, the lowest total risk of any path from the top \
         left to the bottom right is %d\n"

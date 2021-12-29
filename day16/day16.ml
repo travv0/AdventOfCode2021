@@ -45,7 +45,8 @@ let binary_to_string binary =
 
 let hex_to_binary hex : binary =
   String.concat_map hex ~f:hex_digit_to_binary
-  |> String.to_list |> List.map ~f:char_to_bit
+  |> String.to_list
+  |> List.map ~f:char_to_bit
 
 type packet_data =
   | Sum of packet list
@@ -66,11 +67,13 @@ let rec value packet : int =
   | Product sub_packets ->
       sub_packets |> List.map ~f:value |> List.fold ~init:1 ~f:( * )
   | Minimum sub_packets ->
-      sub_packets |> List.map ~f:value
+      sub_packets
+      |> List.map ~f:value
       |> List.min_elt ~compare:Int.compare
       |> Option.value_exn ~message:"no minimum value found"
   | Maximum sub_packets ->
-      sub_packets |> List.map ~f:value
+      sub_packets
+      |> List.map ~f:value
       |> List.max_elt ~compare:Int.compare
       |> Option.value_exn ~message:"no maximum value found"
   | Literal i -> i

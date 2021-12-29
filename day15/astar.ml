@@ -54,7 +54,8 @@ let path (type a) (elem : (module Elem with type t = a)) (start : a) (goal : a)
       result := Some (List.rev (build_path !came_from goal), current.f)
     else (
       open_set := Set.remove_index !open_set 0;
-      current.elem |> Elem.neighbors
+      current.elem
+      |> Elem.neighbors
       |> List.iter ~f:(fun (neighbor, d) ->
              let tentative_g_score = g_score current.elem + d in
              if tentative_g_score < g_score neighbor then (

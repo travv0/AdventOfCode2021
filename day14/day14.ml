@@ -20,7 +20,9 @@ let tails l =
   tails' l []
 
 let make_polymer s =
-  s |> String.to_list |> tails
+  s
+  |> String.to_list
+  |> tails
   |> List.filter_map ~f:(function
        | a :: b :: _ -> Some (String.of_char_list [ a; b ], 1)
        | a :: _ -> Some (String.of_char_list [ a; ' ' ], 1)
@@ -32,7 +34,8 @@ let parse_input input : parse_result =
   | [ polymer; rules ] ->
       let polymer = make_polymer polymer in
       let rules =
-        rules |> String.split_lines
+        rules
+        |> String.split_lines
         |> List.map ~f:(fun line ->
                match Str.split (Str.regexp " -> ") line with
                | [ from; to_ ] -> (from, to_.[0])
@@ -50,7 +53,8 @@ let update_polymer rules (k, v) =
   | None -> [ (k, v) ]
 
 let step (rules : rules) polymer : polymer =
-  polymer |> Map.to_alist
+  polymer
+  |> Map.to_alist
   |> List.concat_map ~f:(update_polymer rules)
   |> Map.of_alist_fold (module String) ~init:0 ~f:( + )
 
@@ -62,7 +66,8 @@ let { rules; polymer } = parse_input input
 let subtract_least_common_from_most_common polymer =
   let open List in
   let sorted =
-    polymer |> Map.to_alist
+    polymer
+    |> Map.to_alist
     |> map ~f:(fun (a, b) -> (a.[0], b))
     |> Map.of_alist_fold (module Char) ~init:0 ~f:( + )
     |> Map.to_alist
