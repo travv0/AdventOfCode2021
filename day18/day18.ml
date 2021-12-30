@@ -16,52 +16,54 @@ module SnailfishNumber = struct
     | Pair (a, b) -> sprintf "[%s,%s]" (to_string a) (to_string b)
     | Number n -> Int.to_string n
 
-  let rec add_to_left i = function
-    | Pair (a, b) -> Pair (add_to_left i a, b)
+  let rec add_to_left num i =
+    match num with
+    | Pair (a, b) -> Pair (add_to_left a i, b)
     | Number n -> Number (n + i)
 
-  let rec add_to_right i = function
-    | Pair (a, b) -> Pair (a, add_to_right i b)
+  let rec add_to_right num i =
+    match num with
+    | Pair (a, b) -> Pair (a, add_to_right b i)
     | Number n -> Number (n + i)
 
   let rec edge_explode_left num : t =
     match num with
-    | Pair (Pair (Number _, Number b), c) -> Pair (Number 0, add_to_left b c)
+    | Pair (Pair (Number _, Number b), c) -> Pair (Number 0, add_to_left c b)
     | Pair (a, b) -> Pair (edge_explode_left a, b)
     | Number _ -> failwith "edge_explode_left: hit dead end"
 
   let rec edge_explode_right num : t =
     match num with
-    | Pair (a, Pair (Number b, Number _)) -> Pair (add_to_right b a, Number 0)
+    | Pair (a, Pair (Number b, Number _)) -> Pair (add_to_right a b, Number 0)
     | Pair (a, b) -> Pair (a, edge_explode_right b)
     | Number _ -> failwith "edge_explode_right: hit dead end"
 
-  let rec walk_path path num =
+  let rec walk_path num path =
     match (path, num) with
     | [], _ -> num
-    | `L :: path, Pair (a, _) -> walk_path path a
-    | `R :: path, Pair (_, b) -> walk_path path b
+    | `L :: path, Pair (a, _) -> walk_path a path
+    | `R :: path, Pair (_, b) -> walk_path b path
     | _, Number _ -> failwith "walk_path: hit number"
 
-  let explode_right path num : t =
+  let explode_right num path : t =
     match num with
     | Pair (a, b) -> (
-        match walk_path path num with
+        match walk_path num path with
         | Pair (Number n, Number _) ->
-            Pair (add_to_right n a, edge_explode_left b)
+            Pair (add_to_right a n, edge_explode_left b)
         | _ -> failwith "explode_right: path didn't lead to pair of numbers")
     | Number _ -> failwith "explode_right: hit number"
 
-  let explode_left path num : t =
+  let explode_left num path : t =
     match num with
     | Pair (a, b) -> (
-        match walk_path path num with
+        match walk_path num path with
         | Pair (Number _, Number m) ->
-            Pair (edge_explode_right a, add_to_left m b)
+            Pair (edge_explode_right a, add_to_left b m)
         | _ -> failwith "explode_left: path didn't lead to pair of numbers")
     | Number _ -> failwith "explode_left: hit number"
 
-  let rec explode path num =
+  let rec explode num path =
     if
       List.for_all path ~f:(fun dir ->
           match dir with `L -> true | `R -> false)
@@ -77,28 +79,29 @@ module SnailfishNumber = struct
             tl
             |> List.for_all ~f:(fun dir ->
                    match dir with `L -> true | `R -> false)
-          then explode_right path num
+          then explode_right num path
           else if
             tl
             |> List.for_all ~f:(fun dir ->
                    match dir with `R -> true | `L -> false)
-          then explode_left path num
+          then explode_left num path
           else
             match (dir, num) with
-            | `L, Pair (a, b) -> Pair (explode tl a, b)
-            | `R, Pair (a, b) -> Pair (a, explode tl b)
+            | `L, Pair (a, b) -> Pair (explode a tl, b)
+            | `R, Pair (a, b) -> Pair (a, explode b tl)
             | _, _ ->
                 failwithf "explode: bad path for num %s" (to_string num) ())
       | _ -> failwith "explode: empty path"
 
-  let rec explode_path path : t -> _ list = function
+  let rec explode_path num path : _ list =
+    match num with
     | Pair (a, b) ->
         if List.length path >= 4 then List.rev path
         else
-          let left_path = explode_path (`L :: path) a in
+          let left_path = explode_path a (`L :: path) in
           if List.length left_path >= 4 then left_path
           else
-            let right_path = explode_path (`R :: path) b in
+            let right_path = explode_path b (`R :: path) in
             if List.length right_path >= 4 then right_path else []
     | Number _ -> []
 
@@ -115,17 +118,17 @@ module SnailfishNumber = struct
     | Number n as num -> if n >= 10 then (split n, true) else (num, false)
 
   let rec reduce (num : t) =
-    let path = explode_path [] num in
-    if List.length path > 0 then explode path num |> reduce
+    let path = explode_path num [] in
+    if List.length path > 0 then explode num path |> reduce
     else
       let new_num, split_done = maybe_split num in
       if split_done then reduce new_num else num
 
-  let ( + ) num1 num2 = Pair (num1, num2) |> reduce
-
   let rec magnitude = function
     | Number n -> n
-    | Pair (a, b) -> Int.((3 * magnitude a) + (2 * magnitude b))
+    | Pair (a, b) -> (3 * magnitude a) + (2 * magnitude b)
+
+  let ( + ) num1 num2 = Pair (num1, num2) |> reduce
 
   let of_string s =
     let parse_num cs : t * char list =
@@ -155,7 +158,9 @@ let () =
   let nums =
     input |> String.strip |> String.split_lines |> List.map ~f:of_string
   in
-  List.reduce_exn nums ~f:( + )
+
+  nums
+  |> List.reduce_exn ~f:( + )
   |> magnitude
   |> printf "The magnitude of the final sum is %d\n";
 
@@ -163,7 +168,7 @@ let () =
       List.filter_mapi nums ~f:(fun j m ->
           if i <> j then Some (n + m |> magnitude) else None))
   |> List.max_elt ~compare:Int.compare
-  |> Option.value_exn
+  |> Option.value_exn ~message:"max_elt called on empty list"
   |> printf
        "The largest magnitude of any sum of two different snailfish numbers \
         from the homework assignment is %d\n"
