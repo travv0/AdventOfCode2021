@@ -23,52 +23,52 @@ module SnailfishNumber =
         | L
         | R
 
-    let rec addToLeft i =
-        function
-        | Pair (a, b) -> Pair(addToLeft i a, b)
+    let rec addToLeft num i =
+        match num with
+        | Pair (a, b) -> Pair(addToLeft a i, b)
         | Number n -> Number(n + i)
 
-    let rec addToRight i =
-        function
-        | Pair (a, b) -> Pair(a, addToRight i b)
+    let rec addToRight num i =
+        match num with
+        | Pair (a, b) -> Pair(a, addToRight b i)
         | Number n -> Number(n + i)
 
     let rec edgeExplodeLeft =
         function
-        | Pair (Pair (Number _, Number b), c) -> Pair(Number 0, addToLeft b c)
+        | Pair (Pair (Number _, Number b), c) -> Pair(Number 0, addToLeft c b)
         | Pair (a, b) -> Pair(edgeExplodeLeft a, b)
         | Number _ -> failwith "edgeExplodeLeft: hit dead end"
 
     let rec edgeExplodeRight =
         function
-        | Pair (a, Pair (Number b, Number _)) -> Pair(addToRight b a, Number 0)
+        | Pair (a, Pair (Number b, Number _)) -> Pair(addToRight a b, Number 0)
         | Pair (a, b) -> Pair(a, edgeExplodeRight b)
         | Number _ -> failwith "edgeExplodeRight: hit dead end"
 
-    let rec walkPath path num =
+    let rec walkPath num path =
         match (path, num) with
         | [], _ -> num
-        | L :: path, Pair (a, _) -> walkPath path a
-        | R :: path, Pair (_, b) -> walkPath path b
+        | L :: path, Pair (a, _) -> walkPath a path
+        | R :: path, Pair (_, b) -> walkPath b path
         | _, Number _ -> failwith "walkPath: hit number"
 
-    let rec explodeRight path =
-        function
-        | Pair (a, b) as num ->
-            match walkPath path num with
-            | Pair (Number n, Number _) -> Pair(addToRight n a, edgeExplodeLeft b)
+    let rec explodeRight num path =
+        match num with
+        | Pair (a, b) ->
+            match walkPath num path with
+            | Pair (Number n, Number _) -> Pair(addToRight a n, edgeExplodeLeft b)
             | _ -> failwith "explodeRight: path didn't lead to pair of numbers"
         | Number _ -> failwith "explodeRight: hit number"
 
-    let rec explodeLeft path =
-        function
-        | Pair (a, b) as num ->
-            match walkPath path num with
-            | Pair (Number _, Number m) -> Pair(edgeExplodeRight a, addToLeft m b)
+    let rec explodeLeft num path =
+        match num with
+        | Pair (a, b) ->
+            match walkPath num path with
+            | Pair (Number _, Number m) -> Pair(edgeExplodeRight a, addToLeft b m)
             | _ -> failwith "explodeLeft: path didn't lead to pair of numbers"
         | Number _ -> failwith "explodeLeft: hit number"
 
-    let rec explode path num =
+    let rec explode num path =
         if List.forall ((=) L) path then
             edgeExplodeLeft num
         else if List.forall ((=) R) path then
@@ -77,28 +77,28 @@ module SnailfishNumber =
             match path with
             | dir :: tl ->
                 if tl |> List.forall ((=) L) then
-                    explodeRight path num
+                    explodeRight num path
                 else if tl |> List.forall ((=) R) then
-                    explodeLeft path num
+                    explodeLeft num path
                 else
                     match (dir, num) with
-                    | L, Pair (a, b) -> Pair(explode tl a, b)
-                    | R, Pair (a, b) -> Pair(a, explode tl b)
+                    | L, Pair (a, b) -> Pair(explode a tl, b)
+                    | R, Pair (a, b) -> Pair(a, explode b tl)
                     | _, _ -> failwithf "explode: bad path for num %s" (num.ToString())
             | _ -> failwith "explode: empty path"
 
-    let rec explodePath path =
-        function
+    let rec explodePath num path =
+        match num with
         | Pair (a, b) ->
             if List.length path >= 4 then
                 List.rev path
             else
-                let leftPath = explodePath (L :: path) a
+                let leftPath = explodePath a (L :: path)
 
                 if List.length leftPath >= 4 then
                     leftPath
                 else
-                    let rightPath = explodePath (R :: path) b
+                    let rightPath = explodePath b (R :: path)
 
                     if List.length rightPath >= 4 then
                         rightPath
@@ -130,10 +130,10 @@ module SnailfishNumber =
                 (num, false)
 
     let rec reduce num =
-        let path = explodePath [] num
+        let path = explodePath num []
 
         if List.length path > 0 then
-            explode path num |> reduce
+            explode num path |> reduce
         else
             let newNum, splitDone = maybeSplit num
             if splitDone then reduce newNum else num
@@ -143,7 +143,10 @@ module SnailfishNumber =
         | Number n -> n
         | Pair (a, b) -> 3 * magnitude a + 2 * magnitude b
 
-    let parse s =
+type SnailfishNumber with
+    member this.Magnitude = SnailfishNumber.magnitude this
+
+    static member Parse s =
         let parseNum cs =
             let digits, remaining =
                 List.takeWhile Char.IsDigit cs, List.skipWhile Char.IsDigit cs
@@ -170,9 +173,9 @@ module SnailfishNumber =
 
         s |> Seq.toList |> parseElement |> fst
 
-type SnailfishNumber with
-    static member (+)(num1, num2) =
-        Pair(num1, num2) |> SnailfishNumber.reduce
+    member this.Reduced = SnailfishNumber.reduce this
+
+    static member (+)(num1, num2) = Pair(num1, num2).Reduced
 
 let nums =
     input.Split(
@@ -180,24 +183,24 @@ let nums =
         StringSplitOptions.RemoveEmptyEntries
         ||| StringSplitOptions.TrimEntries
     )
-    |> Seq.map SnailfishNumber.parse
+    |> Seq.map SnailfishNumber.Parse
     |> Seq.toList
 
 nums
 |> List.reduce (+)
 |> SnailfishNumber.magnitude
-|> printf "The magnitude of the final sum is %d\n"
+|> printfn "The magnitude of the final sum is %d"
 
 nums
 |> Seq.map (fun n ->
     nums
     |> List.choose (fun m ->
         if n <> m then
-            Some(n + m |> SnailfishNumber.magnitude)
+            Some((n + m).Magnitude)
         else
             None))
 |> Seq.concat
 |> Seq.max
-|> printf
+|> printfn
     "The largest magnitude of any sum of two different snailfish numbers \
-      from the homework assignment is %d\n"
+    from the homework assignment is %d"
