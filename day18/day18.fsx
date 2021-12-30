@@ -9,10 +9,6 @@ let fileName =
 
 let input = File.ReadAllText(fileName)
 
-type Dir =
-    | L
-    | R
-
 type SnailfishNumber =
     | Number of int
     | Pair of SnailfishNumber * SnailfishNumber
@@ -23,6 +19,10 @@ type SnailfishNumber =
         | Number n -> n.ToString()
 
 module SnailfishNumber =
+    type Dir =
+        | L
+        | R
+
     let rec addToLeft i =
         function
         | Pair (a, b) -> Pair(addToLeft i a, b)
@@ -136,7 +136,6 @@ module SnailfishNumber =
             explode path num |> reduce
         else
             let newNum, splitDone = maybeSplit num
-
             if splitDone then reduce newNum else num
 
     let rec magnitude =
