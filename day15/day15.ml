@@ -47,7 +47,6 @@ let parse_input input =
   |> List.to_array
 
 let cave = parse_input input
-let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 let cave_width = Array.length cave
 let cave_height = Array.length cave.(0)
 
