@@ -7,10 +7,9 @@ type fishes = fish list
 module Fish = Int64
 
 let ( >> ) f g x = g (f x)
-let ( << ) f g x = f (g x)
 
 module List = struct
-  include Base.List
+  include List
 
   let adjust_at ~index ~f list =
     match List.split_n list index with
@@ -38,16 +37,14 @@ let parse_input (input : string) : fishes =
 
   List.range' ~stop:`inclusive ~stride:(( + ) 1L) ~compare 0L 8L
   |> List.map ~f:(fun i ->
-         counts
-         |> List.find ~f:(fst >> ( = ) i)
-         |> Option.map ~f:snd
+         List.Assoc.find counts ~equal:( = ) i
          |> Option.value ~default:0
          |> of_int)
 
 let step (fishes : fishes) : fishes =
   let open Fish in
   match fishes with
-  | zeros :: fishes ->
+  | zeros :: fishes when Int.(List.length fishes = 8) ->
       List.adjust_at ~index:6 ~f:(( + ) zeros) fishes @ [ zeros ]
   | _ -> failwith "where your fishes at?"
 
@@ -61,12 +58,14 @@ let file_name =
 
 let fishes = In_channel.read_all file_name |> parse_input
 
+open Fish
+
 let () =
-  let open Fish in
   step_times 80 fishes
   |> List.fold ~init:zero ~f:( + )
-  |> printf "Number of lanternfish after 80 days: %Ld\n";
+  |> printf "Number of lanternfish after 80 days: %Ld\n"
 
+let () =
   step_times 256 fishes
   |> List.fold ~init:zero ~f:( + )
   |> printf "Number of lanternfish after 256 days: %Ld\n"
