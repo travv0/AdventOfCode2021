@@ -1,6 +1,0 @@
-(executable
- (name day9)
- (libraries base stdio))
-
-(cram
- (deps day9.exe))

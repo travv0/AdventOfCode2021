@@ -1,0 +1,69 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: d0c8661732a055499d2968a8300fb8f3d430b897fa1c62a65d70fe8cb7dd92bb
+
+name:           day06
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/day06#readme>
+homepage:       https://github.com/githubuser/day06#readme
+bug-reports:    https://github.com/githubuser/day06/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2021 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/day06
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_day06
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , split
+  default-language: Haskell2010
+
+executable day06-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_day06
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , day06
+    , split
+  default-language: Haskell2010
+
+test-suite day06-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_day06
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , day06
+    , hspec
+    , split
+  default-language: Haskell2010
