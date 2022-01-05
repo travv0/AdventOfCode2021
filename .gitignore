@@ -6,7 +6,6 @@ test*.txt
 _*
 .*
 
-!.gitattributes
 !.ocamlformat
 
 *.annot
