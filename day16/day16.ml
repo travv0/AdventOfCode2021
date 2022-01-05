@@ -129,11 +129,11 @@ and parse_packet (binary : binary) : packet * binary =
     | l, _ ->
         failwithf "parse_two: invalid number of elements: %d" (List.length l) ()
   in
-  let v_str, binary = List.split_n binary 3 in
-  let version = binary_to_int v_str in
-  let t_str, binary = List.split_n binary 3 in
+  let v, binary = List.split_n binary 3 in
+  let version = binary_to_int v in
+  let type_, binary = List.split_n binary 3 in
   let data, remaining =
-    match binary_to_int t_str with
+    match binary_to_int type_ with
     | 0 ->
         let packet, remaining = parse_many binary in
         (Sum packet, remaining)
