@@ -3,14 +3,20 @@ open System.IO
 type Fish = int64
 type Fishes = list<Fish>
 
+module Seq =
+    module Assoc =
+        let lookup elem source =
+            source
+            |> Seq.tryFind (fst >> (=) elem)
+            |> Option.map snd
+
 let parseInput (input: string) : Fishes =
     let fishNums = input.Trim().Split(',')
     let counts = Seq.countBy int fishNums
 
     [ for i in 0 .. 8 do
           counts
-          |> Seq.tryFind ((=) i << fst)
-          |> Option.map snd
+          |> Seq.Assoc.lookup i
           |> Option.defaultValue 0
           |> int64 ]
 
