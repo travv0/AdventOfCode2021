@@ -29,10 +29,7 @@ let is_small_cave = String.for_all ~f:Char.is_lowercase
 
 module List_of_string = struct
   module T = struct
-    type t = string list
-
-    let compare l1 l2 = List.compare String.compare l1 l2
-    let sexp_of_t l = List.sexp_of_t String.sexp_of_t l
+    type t = string list [@@deriving compare, sexp_of]
   end
 
   include T

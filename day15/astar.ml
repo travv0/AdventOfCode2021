@@ -1,6 +1,6 @@
 open Base
 
-type 'a node = { elem : 'a; f : int }
+type 'a node = { f : int; elem : 'a } [@@deriving compare, sexp_of]
 
 module type Elem = sig
   include Comparator.S
@@ -14,12 +14,7 @@ end
 
 module Node (M : Elem) = struct
   module T = struct
-    type t = M.t node
-
-    let compare { elem = elem1; f = f1 } { elem = elem2; f = f2 } =
-      match Int.compare f1 f2 with 0 -> M.compare elem1 elem2 | r -> r
-
-    let sexp_of_t { elem; f } = Sexp.List [ M.sexp_of_t elem; Int.sexp_of_t f ]
+    type t = M.t node [@@deriving compare, sexp_of]
   end
 
   include T
