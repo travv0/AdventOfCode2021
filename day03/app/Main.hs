@@ -9,11 +9,11 @@ import           Lib                            ( co2ScrubberRating
 
 main :: IO ()
 main = do
-    input <- lines <$> readFile "input.txt"
-    let counts = parseCounts input
+  input <- lines <$> readFile "input.txt"
+  let counts = parseCounts input
 
-    putStrLn $ "The power consumption of the submarine is " <> show
-        (gammaRate counts * epsilonRate counts)
+  putStrLn $ "The power consumption of the submarine is " <> show
+    (gammaRate counts * epsilonRate counts)
 
-    putStrLn $ "The life support rating of the submarine is " <> show
-        (oxygenGeneratorRating input * co2ScrubberRating input)
+  putStrLn $ "The life support rating of the submarine is " <> show
+    (oxygenGeneratorRating input * co2ScrubberRating input)
