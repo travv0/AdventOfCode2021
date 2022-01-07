@@ -1,10 +1,8 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: d0c8661732a055499d2968a8300fb8f3d430b897fa1c62a65d70fe8cb7dd92bb
 
 name:           day06
 version:        0.1.0.0
@@ -18,8 +16,6 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
-    README.md
-    ChangeLog.md
 
 source-repository head
   type: git
@@ -38,7 +34,7 @@ library
     , split
   default-language: Haskell2010
 
-executable day06-exe
+executable day06
   main-is: Main.hs
   other-modules:
       Paths_day06
@@ -52,7 +48,7 @@ executable day06-exe
     , split
   default-language: Haskell2010
 
-test-suite day06-test
+test-suite tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
