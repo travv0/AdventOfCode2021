@@ -9,12 +9,7 @@ let ( ||> ) (a, b) f = f a b
 
 module Int_pair = struct
   module T = struct
-    type t = int * int
-
-    let compare (a1, b1) (a2, b2) =
-      List.compare Int.compare [ a1; b1 ] [ a2; b2 ]
-
-    let sexp_of_t (a, b) = List.sexp_of_t Int.sexp_of_t [ a; b ]
+    type t = int * int [@@deriving compare, sexp_of]
   end
 
   include T

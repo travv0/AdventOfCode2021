@@ -1,6 +1,8 @@
 (executable
  (name day12)
- (libraries base stdio))
+ (libraries base stdio)
+ (preprocess
+  (pps ppx_jane)))
 
 (cram
  (deps day12.exe))

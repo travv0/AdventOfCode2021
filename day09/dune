@@ -1,6 +1,8 @@
 (executable
  (name day9)
- (libraries base stdio))
+ (libraries base stdio)
+ (preprocess
+  (pps ppx_jane)))
 
 (cram
  (deps day9.exe))

@@ -2,24 +2,24 @@ open Base
 open Stdio
 open Printf
 
-type coords = { x : int; y : int }
-
 module Coords = struct
   module T = struct
-    type t = coords
-
-    let compare { x = x1; y = y1 } { x = x2; y = y2 } =
-      List.compare Int.compare [ x1; y1 ] [ x2; y2 ]
-
-    let sexp_of_t { x; y } = List.sexp_of_t Int.sexp_of_t [ x; y ]
+    type t = { x : int; y : int } [@@deriving compare, sexp_of]
   end
 
   include T
   include Comparator.Make (T)
+
+  let parse s =
+    match s |> String.split ~on:',' with
+    | [ x; y ] -> { x = Int.of_string x; y = Int.of_string y }
+    | _ -> failwithf "bad parse: %s" s ()
+
+  let to_pair { x; y } = (x, y)
 end
 
 type axis = X | Y
-type paper = (coords, Coords.comparator_witness) Set.t
+type paper = (Coords.t, Coords.comparator_witness) Set.t
 
 module Axis = struct
   let of_string = function
@@ -38,11 +38,6 @@ let file_name =
 
 let input = In_channel.read_all file_name
 
-let parse_coords s =
-  match s |> String.split ~on:',' with
-  | [ x; y ] -> { x = Int.of_string x; y = Int.of_string y }
-  | _ -> failwithf "bad parse: %s" s ()
-
 let parse_fold s =
   match
     s
@@ -59,7 +54,7 @@ let parse_input input : parse_result =
       let paper =
         coords
         |> String.split_lines
-        |> List.map ~f:parse_coords
+        |> List.map ~f:Coords.parse
         |> Set.of_list (module Coords)
       in
       let fold_queue = folds |> String.split_lines |> List.map ~f:parse_fold in
@@ -84,7 +79,7 @@ let fold_vertical fold_x (paper : paper) : paper =
 
 let print_paper paper =
   let xs, ys =
-    paper |> Set.to_list |> List.map ~f:(fun { x; y } -> (x, y)) |> List.unzip
+    paper |> Set.to_list |> List.map ~f:Coords.to_pair |> List.unzip
   in
   let max_x = List.max_elt xs ~compare:Int.compare |> Option.value_exn
   and max_y = List.max_elt ys ~compare:Int.compare |> Option.value_exn in

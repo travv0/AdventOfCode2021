@@ -12,7 +12,8 @@
         "ocaml": "*",
         "@opam/dune": "*",
         "@opam/base": "*",
-        "@opam/stdio": "*"
+        "@opam/stdio": "*",
+        "@opam/ppx_jane": "*"
     },
     "devDependencies": {
         "@opam/ocaml-lsp-server": "*"

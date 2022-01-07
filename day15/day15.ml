@@ -19,12 +19,7 @@ module CoordsElem = struct
   let make neighbors =
     (module struct
       module T = struct
-        type t = int * int
-
-        let compare (x1, y1) (x2, y2) =
-          List.compare Int.compare [ x1; y1 ] [ x2; y2 ]
-
-        let sexp_of_t (x, y) = List.sexp_of_t Int.sexp_of_t [ x; y ]
+        type t = int * int [@@deriving compare, sexp_of]
       end
 
       include T
