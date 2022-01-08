@@ -5,58 +5,47 @@ type PlayerNum =
     | One
     | Two
 
-type Player =
-    { mutable Position: int
-      mutable Score: int }
+type Player = { Position: int; Score: int }
 
 module Player =
     let make pos = { Position = pos; Score = 0 }
 
     let move spaces player =
-        player.Position <- (player.Position + spaces - 1) % 10 + 1
-        player
+        { player with Position = (player.Position + spaces - 1) % 10 + 1 }
 
     let updateScore player =
-        player.Score <- player.Score + player.Position
-        player
+        { player with Score = player.Score + player.Position }
 
 type Game =
-    { mutable Die: int
-      mutable RollCount: int
+    { Die: int
+      RollCount: int
       WinningScore: int
-      Player: PlayerNum -> Player }
+      Players: Map<PlayerNum, Player> }
 
 module Game =
     let make winningScore playerOnePos playerTwoPos =
         let playerOne = Player.make playerOnePos
         let playerTwo = Player.make playerTwoPos
 
-        { Die = 1
+        { Die = 100
           RollCount = 0
           WinningScore = winningScore
-          Player =
-            function
-            | One -> playerOne
-            | Two -> playerTwo }
+          Players =
+            Map.ofList [ (One, playerOne)
+                         (Two, playerTwo) ] }
 
     let roll times game =
-        seq {
-            for _ in 1 .. times do
-                yield game.Die
-                game.Die <- game.Die % 100 + 1
-                game.RollCount <- game.RollCount + 1
-        }
-        |> Seq.sum
+        [ for i in 1 .. times -> (game.Die + i - 1) % 100 + 1 ]
+        |> (fun x ->
+            List.sum x,
+            { game with
+                Die = List.last x
+                RollCount = game.RollCount + times })
 
     let playTurn playerNum game =
-        let spaces = roll 3 game
+        let (spaces, game) = roll 3 game
+        { game with Players = Map.change playerNum (Option.map (Player.move spaces >> Player.updateScore)) game.Players }
 
-        game.Player playerNum
-        |> Player.move spaces
-        |> Player.updateScore
-        |> ignore
-
-        game
 
     let play game =
         let switch =
@@ -64,13 +53,18 @@ module Game =
             | One -> Two
             | Two -> One
 
-        let mutable currentPlayer = Two
+        let rec loop currentPlayer game =
+            let game = playTurn currentPlayer game
 
-        while (game.Player currentPlayer).Score < game.WinningScore do
-            currentPlayer <- switch currentPlayer
-            playTurn currentPlayer game |> ignore
+            if (Map.find currentPlayer game.Players).Score
+               >= game.WinningScore then
+                ((Map.find (switch currentPlayer) game.Players)
+                    .Score,
+                 game.RollCount)
+            else
+                loop (switch currentPlayer) game
 
-        (game.Player(switch currentPlayer).Score, game.RollCount)
+        loop One game
 
 let calcPart1 playerOnePos playerTwoPos =
     let (losingScore, rollCount) =
