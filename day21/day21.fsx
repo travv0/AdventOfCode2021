@@ -96,30 +96,33 @@ module Game =
 
         loop One game
 
-    type private CacheKey = (int * PlayerNum * int * int * int * int)
+    module private Cache =
+        type Key = (int * PlayerNum * int * int * int * int)
 
-    let private winCache = Dictionary<CacheKey, QuantumWins>()
+        let private winCache = Dictionary<Key, QuantumWins>()
 
-    let private cacheKey (game: Game) playerNum : CacheKey =
-        let playerOne = getPlayer One game
-        let playerTwo = getPlayer Two game
-        (game.WinningScore, playerNum, playerOne.Position, playerOne.Score, playerTwo.Position, playerTwo.Score)
+        let clear = winCache.Clear
 
-    let private cacheHit (game: Game) playerNum : option<QuantumWins> =
-        let key = cacheKey game playerNum
+        let makeKey (game: Game) playerNum : Key =
+            let playerOne = getPlayer One game
+            let playerTwo = getPlayer Two game
+            (game.WinningScore, playerNum, playerOne.Position, playerOne.Score, playerTwo.Position, playerTwo.Score)
 
-        if winCache.ContainsKey(key) then
-            Some winCache.[key]
-        else
-            None
+        let cacheHit (game: Game) playerNum : option<QuantumWins> =
+            let key = makeKey game playerNum
 
-    let private cacheWins game playerNum wins : QuantumWins =
-        let key = cacheKey game playerNum
+            if winCache.ContainsKey(key) then
+                Some winCache.[key]
+            else
+                None
 
-        if not <| winCache.ContainsKey(key) then
-            winCache.Add(key, wins)
+        let cacheWins game playerNum wins : QuantumWins =
+            let key = makeKey game playerNum
 
-        wins
+            if not <| winCache.ContainsKey(key) then
+                winCache.Add(key, wins)
+
+            wins
 
     let playQuantum (game: Game) : QuantumWins =
         let rec rollQuantum (game: Game) (playerNum: PlayerNum) (n: int) (sum: int) : QuantumWins =
@@ -141,12 +144,12 @@ module Game =
                     player, updatePlayer playerNum player game
                 | None -> getPlayer playerNum game, game
 
-            match cacheHit game playerNum with
+            match Cache.cacheHit game playerNum with
             | Some wins -> wins
             | None ->
                 if player.Score < game.WinningScore then
                     rollQuantum game (PlayerNum.switch playerNum) 3 0
-                    |> cacheWins game playerNum
+                    |> Cache.cacheWins game playerNum
                 else
                     match playerNum with
                     | One -> { PlayerOne = 1; PlayerTwo = 0 }
