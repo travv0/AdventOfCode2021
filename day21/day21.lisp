@@ -1,8 +1,7 @@
 (defpackage aoc2021.day21
   (:use #:cl))
 
-(defvar *player-one-wins*)
-(defvar *player-two-wins*)
+(in-package :aoc2021.day21)
 
 (defclass game ()
   ((die :reader die :initform 1)
@@ -35,7 +34,7 @@
   ((position :reader player-position :initarg :position :initform (error "position is required"))
    (score :reader score :initform 0)))
 
-(defmethod roll ((game game) &optional (times 1))
+(defmethod deterministic-roll ((game game) &optional (times 1))
   (loop for i from 1 to times
         sum (die game)
         do (setf (slot-value game 'die)
@@ -46,24 +45,64 @@
                  (1+ (roll-count game)))))
 
 (defmethod quantum-roll ((game game) player-num &key (sides 3) (times 1) (sum 0))
-  (let ((game (copy-game game)))
-    (loop for i from 1 to sides
-          if (> times 0)
-            do (quantum-roll game player-num :sides sides :times (1- times) :sum (+ sum i))
-          else
-            do (play-quantum-turn game player-num sum))))
+  (if (zerop times)
+      (play-quantum-game game player-num sum)
+      (loop for i from 1 to sides
+            collecting (quantum-roll game player-num
+                                     :sides sides
+                                     :times (1- times)
+                                     :sum (+ sum i))
+              into results
+            finally (return (reduce (lambda (a b)
+                                      (list (+ (first a) (first b))
+                                            (+ (second a) (second b))))
+                                    results)))))
 
-(defmethod play-quantum-turn ((game game) player-num &optional spaces)
-  (let ((player (player game player-num)))
-    (when spaces
-      (move player spaces)
-      (update-score player)
-      (when (> (score player) (winning-score game))
-        (case player-num
-          (:one (incf *player-one-wins*))
-          (:two (incf *player-two-wins*)))
-        (return-from play-quantum-turn)))
-    (quantum-roll game (case player-num (:one :two) (:two :one)) :times 3)))
+(defun switch-player (player-num)
+  (case player-num
+    (:one :two)
+    (:two :one)))
+
+(defmethod play-quantum-game ((game game) &optional (player-num :two) spaces)
+  (let ((game (copy-game game)))
+    (flet ((make-wins (player-num)
+             (ccase player-num
+               (:one (list 1 0))
+               (:two (list 0 1)))))
+      (let ((player (player game player-num)))
+        (when spaces
+          (move player spaces)
+          (update-score player))
+        (let ((wins (cache-hit game player-num)))
+          (cond
+            (wins)
+            ((>= (score player) (winning-score game))
+             (make-wins player-num))
+            (t
+             (cache-wins game
+                         player-num
+                         (quantum-roll game
+                                       (switch-player player-num)
+                                       :times 3)))))))))
+
+(defvar *win-cache* (make-hash-table :test 'equal))
+
+(defun make-cache-key (game player-num)
+  (let ((player-one (player game :one))
+        (player-two (player game :two)))
+    (list
+     (winning-score game)
+     player-num
+     (player-position player-one)
+     (score player-one)
+     (player-position player-two)
+     (score player-two))))
+
+(defun cache-wins (game player-num wins)
+  (setf (gethash (make-cache-key game player-num) *win-cache*) wins))
+
+(defun cache-hit (game player-num)
+  (gethash (make-cache-key game player-num) *win-cache*))
 
 (defmethod move ((player player) spaces)
   (setf (slot-value player 'position)
@@ -75,7 +114,7 @@
   (incf (slot-value player 'score) (player-position player)))
 
 (defmethod play-turn ((game game) player-num)
-  (let ((spaces (roll game 3))
+  (let ((spaces (deterministic-roll game 3))
         (player (player game player-num)))
     (move player spaces)
     (update-score player)))
@@ -85,24 +124,22 @@
   (describe (player game :one))
   (describe (player game :two)))
 
-(defmethod play-game ((game game))
+(defmethod play-deterministic-game ((game game))
   (loop for (current-player other-player) on '#1=(:one :two . #1#)
         do (play-turn game current-player)
         until (>= (score (player game current-player)) (winning-score game))
-        finally (return (values (score (player game other-player)) (roll-count game)))))
+        finally (return (values (score (player game other-player))
+                                (roll-count game)))))
 
 (defun calculate-part-1 (player-one-position player-two-position)
   (let ((game (make-instance 'game :player-one-position player-one-position
                                    :player-two-position player-two-position
                                    :winning-score 1000)))
-    (multiple-value-bind (losing-score roll-count) (play-game game)
+    (multiple-value-bind (losing-score roll-count) (play-deterministic-game game)
       (* losing-score roll-count))))
 
 (defun calculate-part-2 (player-one-position player-two-position)
   (let ((game (make-instance 'game :player-one-position player-one-position
                                    :player-two-position player-two-position
-                                   :winning-score 21))
-        (*player-one-wins* 0)
-        (*player-two-wins* 0))
-    (play-quantum-turn game :one)
-    (list *player-one-wins* *player-two-wins*)))
+                                   :winning-score 21)))
+    (apply #'max (play-quantum-game game))))
