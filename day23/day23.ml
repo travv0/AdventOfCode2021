@@ -16,9 +16,9 @@ type amphipod_state = Idle | Moving | Stopped | Goal
 [@@deriving compare, sexp_of, equal]
 
 type amphipod =
-  { x : int
+  { type_ : amphipod_type
+  ; x : int
   ; y : int
-  ; type_ : amphipod_type
   ; energy : int
   ; state : amphipod_state
   }
@@ -45,7 +45,15 @@ module State = struct
   include Comparator.Make (T)
   include T
 
-  let heuristic (state1 : t) (state2 : t) : int = failwith "unimplemented"
+  let heuristic ({ amphipods; _ } : t) ({ amphipods = goal_amphipods; _ } : t) :
+      int =
+    let amphipods = List.sort amphipods ~compare:compare_amphipod in
+    let goal_amphipods = List.sort amphipods ~compare:compare_amphipod in
+    List.zip_exn amphipods goal_amphipods
+    |> List.map ~f:(fun ({ x; y; _ }, { x = goal_x; y = goal_y; _ }) ->
+           abs (goal_x - x) + abs (goal_y - y))
+    |> List.fold ~init:0 ~f:( + )
+
   let neighbors (state : t) : (t * int) list = failwith "unimplemented"
 
   let parse s : t =
