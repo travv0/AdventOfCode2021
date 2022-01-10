@@ -15,13 +15,16 @@ type amphipod_type = Amber | Bronze | Copper | Desert
 type amphipod_state = Idle | Moving | Stopped | Goal
 [@@deriving compare, sexp_of, equal]
 
-type amphipod = { type_ : amphipod_type; energy : int; state : amphipod_state }
+type amphipod =
+  { x : int
+  ; y : int
+  ; type_ : amphipod_type
+  ; energy : int
+  ; state : amphipod_state
+  }
 [@@deriving compare, sexp_of, equal]
 
-type open_space = Hallway | Room of amphipod_type
-[@@deriving compare, sexp_of, equal]
-
-type cell = Wall | Open of open_space | Amphipod of amphipod * open_space
+type cell = Wall | Hallway | Room of amphipod_type
 [@@deriving compare, sexp_of, equal]
 
 module Coords = struct
@@ -33,13 +36,10 @@ module Coords = struct
   include T
 end
 
-module State : sig
-  include Astar.Elem
-
-  val parse : string -> t
-end = struct
+module State = struct
   module T = struct
-    type t = cell array array [@@deriving compare, sexp_of, equal]
+    type t = { burrow : cell array array; amphipods : amphipod list }
+    [@@deriving compare, sexp_of, equal]
   end
 
   include Comparator.Make (T)
@@ -48,7 +48,7 @@ end = struct
   let heuristic (state1 : t) (state2 : t) : int = failwith "unimplemented"
   let neighbors (state : t) : (t * int) list = failwith "unimplemented"
 
-  let parse s =
+  let parse s : t =
     let int_to_amphipod_room = function
       | 3 -> Room Amber
       | 5 -> Room Bronze
@@ -56,32 +56,39 @@ end = struct
       | 9 -> Room Desert
       | x -> failwithf "bad x coord for amphipod to start at: %d" x ()
     in
-    s
-    |> String.split_lines
-    |> List.map ~f:(fun line ->
-           line
-           |> String.to_array
-           |> Array.mapi ~f:(fun x -> function
-                | '#' | ' ' -> Wall
-                | '.' -> Open Hallway
-                | 'A' ->
-                    Amphipod
-                      ( { type_ = Amber; energy = 1; state = Idle }
-                      , int_to_amphipod_room x )
-                | 'B' ->
-                    Amphipod
-                      ( { type_ = Bronze; energy = 10; state = Idle }
-                      , int_to_amphipod_room x )
-                | 'C' ->
-                    Amphipod
-                      ( { type_ = Copper; energy = 100; state = Idle }
-                      , int_to_amphipod_room x )
-                | 'D' ->
-                    Amphipod
-                      ( { type_ = Desert; energy = 1000; state = Idle }
-                      , int_to_amphipod_room x )
-                | c -> failwithf "bad parse: %c" c ()))
-    |> List.to_array
+    let burrow, amphipods =
+      s
+      |> String.split_lines
+      |> List.foldi ~init:([], []) ~f:(fun y (burrow, amphipods) line ->
+             let row, new_amphipods =
+               line
+               |> String.to_list
+               |> List.foldi ~init:([], []) ~f:(fun x (row, amphipods) ->
+                    function
+                    | '#' | ' ' -> (Wall :: row, amphipods)
+                    | '.' -> (Hallway :: row, amphipods)
+                    | 'A' ->
+                        ( int_to_amphipod_room x :: row
+                        , { x; y; type_ = Amber; energy = 1; state = Idle }
+                          :: amphipods )
+                    | 'B' ->
+                        ( int_to_amphipod_room x :: row
+                        , { x; y; type_ = Bronze; energy = 10; state = Idle }
+                          :: amphipods )
+                    | 'C' ->
+                        ( int_to_amphipod_room x :: row
+                        , { x; y; type_ = Copper; energy = 100; state = Idle }
+                          :: amphipods )
+                    | 'D' ->
+                        ( int_to_amphipod_room x :: row
+                        , { x; y; type_ = Desert; energy = 1000; state = Idle }
+                          :: amphipods )
+                    | c -> failwithf "bad parse: %c" c ())
+             in
+             let row = row |> List.rev |> List.to_array in
+             (row :: burrow, amphipods @ new_amphipods))
+    in
+    { burrow = burrow |> List.rev |> List.to_array; amphipods }
 end
 
 let start_state = State.parse input
