@@ -24,3 +24,4 @@
   > EOF
 
   $ ./day22.exe test
+  After executing these steps in the initialization procedure region, 590784 cubes are on

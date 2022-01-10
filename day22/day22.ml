@@ -59,6 +59,18 @@ module CuboidRange = struct
     | [ x; y; z ] -> { x = parse_range x; y = parse_range y; z = parse_range z }
     | _ -> failwithf "bad parse: %s" s ()
 
+  let filter range ~stage =
+    match stage with
+    | `initial ->
+        if
+          [ range.x; range.y; range.z ]
+          |> List.for_all ~f:(fun r ->
+                 [ r.start; r.stop ]
+                 |> List.for_all ~f:(Int.between ~low:(-50) ~high:50))
+        then Some range
+        else None
+    | `whole -> Some range
+
   let to_cuboid range : cuboid =
     List.range ~stop:`inclusive range.x.start range.x.stop
     |> List.concat_map ~f:(fun x ->
@@ -72,17 +84,23 @@ end
 module RebootStep = struct
   type t = power * cuboid
 
-  let parse s : t =
+  let parse s ~stage : t option =
     match String.split s ~on:' ' with
-    | [ p; r ] -> (Power.parse p, CuboidRange.parse r |> CuboidRange.to_cuboid)
+    | [ p; r ] ->
+        CuboidRange.parse r
+        |> CuboidRange.filter ~stage
+        |> Option.map ~f:CuboidRange.to_cuboid
+        |> Option.map ~f:(fun cuboid -> (Power.parse p, cuboid))
     | _ -> failwithf "bad parse: %s" s ()
 end
 
-let parse_input s = s |> String.split_lines |> List.map ~f:RebootStep.parse
-let steps = parse_input input
+let parse_input s stage =
+  s |> String.split_lines |> List.filter_map ~f:(RebootStep.parse ~stage)
+
 let reactor : Reactor.t = Set.empty (module Cube)
 
 let () =
+  let steps = parse_input input `initial in
   Reactor.run_steps reactor steps
   |> Set.length
   |> printf
