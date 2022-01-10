@@ -49,7 +49,7 @@ module CuboidRange = struct
     let parse_range s =
       match String.lsplit2 s ~on:'=' with
       | Some (_, r) -> (
-          match Str.split (Str.regexp "\.\.") r with
+          match Str.split (Str.regexp "\\.\\.") r with
           | [ beginning; ending ] ->
               { start = Int.of_string beginning; stop = Int.of_string ending }
           | _ -> failwithf "bad parse: %s" r ())
@@ -69,7 +69,7 @@ module CuboidRange = struct
                  |> List.for_all ~f:(Int.between ~low:(-50) ~high:50))
         then Some range
         else None
-    | `whole -> Some range
+    | `reboot -> Some range
 
   let to_cuboid range : cuboid =
     List.range ~stop:`inclusive range.x.start range.x.stop
@@ -104,6 +104,12 @@ let () =
   Reactor.run_steps reactor steps
   |> Set.length
   |> printf
-       "After executing these steps in the initialization procedure region, %d \
+       "After executing the steps in the initialization procedure region, %d \
         cubes are on\n\
         %!"
+(*
+   let () =
+     let steps = parse_input input `reboot in
+     Reactor.run_steps reactor steps
+     |> Set.length
+     |> printf "After running the reboot steps, %d cubes are on\n%!" *)
