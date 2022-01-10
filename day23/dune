@@ -1,0 +1,8 @@
+(executable
+ (name day23)
+ (libraries base stdio str)
+ (preprocess
+  (pps ppx_jane)))
+
+(cram
+ (deps day23.exe))

@@ -19,7 +19,7 @@ module CoordsElem = struct
   let make neighbors =
     (module struct
       module T = struct
-        type t = int * int [@@deriving compare, sexp_of]
+        type t = int * int [@@deriving compare, sexp_of, equal]
       end
 
       include T
@@ -27,7 +27,6 @@ module CoordsElem = struct
 
       let make x y : t = (x, y)
       let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
-      let ( = ) (x1, y1) (x2, y2) = x1 = x2 && y1 = y2
       let neighbors = neighbors
     end : S)
 end
@@ -69,7 +68,8 @@ let () =
   |> snd
   |> printf
        "The lowest total risk of any path from the top left to the bottom \
-        right is %d\n"
+        right is %d\n\
+        %!"
 
 let () =
   let max_x = (cave_width * 5) - 1 and max_y = (cave_height * 5) - 1 in
@@ -79,4 +79,5 @@ let () =
   |> snd
   |> printf
        "Using the full map, the lowest total risk of any path from the top \
-        left to the bottom right is %d\n"
+        left to the bottom right is %d\n\
+        %!"
