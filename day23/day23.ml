@@ -81,11 +81,10 @@ module State = struct
   let get_cell burrow { x; y; _ } = get_cell_xy burrow x y
 
   let is_room burrow x y =
-    try match burrow.(y).(x) with Room _ -> true | _ -> false
-    with _ -> false
+    match get_cell_xy burrow x y with Room _ -> true | _ -> false
 
   let is_wall burrow x y =
-    try match burrow.(y).(x) with Wall -> true | _ -> false with _ -> false
+    match get_cell_xy burrow x y with Wall -> true | _ -> false
 
   let get_amphipod amphipods x y =
     List.find amphipods ~f:(fun { x = x2; y = y2; _ } -> x = x2 && y = y2)
@@ -199,9 +198,6 @@ module State = struct
 
   let neighbors ({ burrow; amphipods } : t) : (t * int) list =
     (* print { burrow; amphipods }; *)
-    (* (match (get_amphipod amphipods 1 1, get_amphipod amphipods 2 1) with
-       | Some { type_ = Amber; _ }, Some { type_ = Amber; _ } -> failwith "here"
-       | _ -> ()); *)
     (* check for invalid states *)
     if
       List.count amphipods ~f:(fun amphipod ->
@@ -217,7 +213,7 @@ module State = struct
               match get_cell burrow amphipod with
               | Room room_type ->
                   (not (equal_amphipod_type room_type amphipod.type_))
-                  && amphipod.y = 3
+                  && amphipod.y = Array.length burrow - 2
               | _ -> false))
     then failwith "amphipod entered someone else's room";
     let partition_in_doorway () =
@@ -250,7 +246,7 @@ module State = struct
                 List.filter amphipods ~f:(not << equal_amphipod amphipod)
                 |> get_open_neighbors burrow amphipod))
 
-  let parse s : t =
+  let parse ?(hidden_lines = "") s : t =
     let int_to_amphipod_room = function
       | 3 -> Room Amber
       | 5 -> Room Bronze
@@ -258,9 +254,14 @@ module State = struct
       | 9 -> Room Desert
       | x -> failwithf "bad x coord for amphipod to start at: %d" x ()
     in
+    let unfold lines =
+      let top, bottom = List.split_n lines 3 in
+      top @ String.split_lines hidden_lines @ bottom
+    in
     let burrow, amphipods =
       s
       |> String.split_lines
+      |> unfold
       |> List.foldi ~init:([], []) ~f:(fun y (burrow, amphipods) line ->
              let row, new_amphipods =
                line
@@ -297,14 +298,42 @@ module State = struct
     { burrow; amphipods }
 end
 
-let start_state = State.parse input
-
-let goal_state =
-  State.parse
-    "#############\n#...........#\n###A#B#C#D###\n  #A#B#C#D#\n  #########"
+let print_path = true
 
 let () =
+  let start_state = State.parse input in
+
+  let goal_state =
+    State.parse
+      "#############\n#...........#\n###A#B#C#D###\n  #A#B#C#D#\n  #########"
+  in
+
   Astar.path (module State) start_state goal_state |> Option.value_exn
   |> fun (path, cost) ->
   printf "The amphipods can be organized using a minimum of %d energy\n%!" cost;
-  List.iter path ~f:State.print
+  if print_path then List.iter path ~f:State.print
+
+let () =
+  let start_state =
+    State.parse input ~hidden_lines:"  #D#C#B#A#\n  #D#B#A#C#"
+  in
+
+  let goal_state =
+    State.parse
+      "#############\n\
+       #...........#\n\
+       ###A#B#C#D###\n\
+      \  #A#B#C#D#\n\
+      \  #A#B#C#D#\n\
+      \  #A#B#C#D#\n\
+      \  #########"
+  in
+
+  Astar.path (module State) start_state goal_state |> Option.value_exn
+  |> fun (path, cost) ->
+  printf
+    "With the full diagram, the amphipods can be organized using a minimum of \
+     %d energy\n\
+     %!"
+    cost;
+  if print_path then List.iter path ~f:State.print
