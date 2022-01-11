@@ -49,11 +49,25 @@ module State = struct
 
   let heuristic ({ amphipods; _ } : t) ({ amphipods = goal_amphipods; _ } : t) :
       int =
-    let amphipods = List.sort amphipods ~compare:compare_amphipod in
-    let goal_amphipods = List.sort goal_amphipods ~compare:compare_amphipod in
     List.zip_exn amphipods goal_amphipods
-    |> List.map ~f:(fun ({ x; y; energy; _ }, { x = goal_x; y = goal_y; _ }) ->
-           (abs (goal_x - x) + abs (goal_y - y)) * energy)
+    (* |> List.concat_map ~f:(fun (amps, goal_amps) ->
+           let goal_x = (List.hd_exn goal_amps).x in
+           List.zip_exn
+             (List.sort amps ~compare:(fun amp1 amp2 ->
+                  Int.compare (amp1.x - goal_x) (amp2.x - goal_x)))
+             goal_amps) *)
+    |> List.map
+         ~f:(fun
+              ( { x; y; energy; type_; _ }
+              , { x = goal_x; y = goal_y; type_ = goal_type; _ } )
+            ->
+           (* sexp_of_amphipod amp |> print_s;
+              sexp_of_amphipod goal_amp |> print_s;
+              printf "\n%!"; *)
+           if not @@ equal_amphipod_type type_ goal_type then
+             failwith "mismatched types";
+           let vertical = if x = goal_x then 0 else y - 1 in
+           (vertical + abs (goal_x - x) + abs (goal_y - y)) * energy)
     |> List.fold ~init:0 ~f:( + )
 
   let equal { amphipods = amphipods1; _ } { amphipods = amphipods2; _ } =
@@ -61,8 +75,7 @@ module State = struct
       (fun { x = x1; y = y1; type_ = type1; _ }
            { x = x2; y = y2; type_ = type2; _ } ->
         x1 = x2 && y1 = y2 && equal_amphipod_type type1 type2)
-      (List.sort amphipods1 ~compare:compare_amphipod)
-      (List.sort amphipods2 ~compare:compare_amphipod)
+      amphipods1 amphipods2
 
   let get_cell_xy burrow x y = try burrow.(y).(x) with _ -> Wall
   let get_cell burrow { x; y; _ } = get_cell_xy burrow x y
@@ -83,13 +96,13 @@ module State = struct
             printf "%c"
             @@
             match get_amphipod amphipods x y with
-            | Some { state = Goal; _ } -> 'G'
             | Some { type_ = Amber; _ } -> 'A'
             | Some { type_ = Bronze; _ } -> 'B'
             | Some { type_ = Copper; _ } -> 'C'
             | Some { type_ = Desert; _ } -> 'D'
             | None -> ( match cell with Wall -> '#' | Hallway | Room _ -> '.'));
-        printf "\n%!")
+        printf "\n");
+    printf "\n%!"
 
   let amphipod_has_state (amphipods : amphipod list) state =
     List.exists amphipods ~f:(fun amphipod ->
@@ -120,33 +133,34 @@ module State = struct
                        x = new_x && y = new_y)
                  then None
                  else
+                   let new_amphipod =
+                     { amphipod with
+                       x = new_x
+                     ; y = new_y
+                     ; state =
+                         (match get_cell_xy burrow new_x new_y with
+                         | Room room_type
+                           when equal_amphipod_type amphipod.type_ room_type
+                                && (is_wall burrow new_x (new_y + 1)
+                                   || List.exists amphipods
+                                        ~f:(fun { x; y; _ } ->
+                                          x = new_x && y = new_y + 1)) ->
+                             Goal
+                         | _ -> (
+                             match amphipod.state with
+                             | Moving -> Moving
+                             | MovingToGoal -> MovingToGoal
+                             | Stopped -> MovingToGoal
+                             | Idle -> Moving
+                             | Goal ->
+                                 failwith "trying to move amphipod from goal"))
+                     }
+                   in
                    let new_state =
                      ( { burrow
                        ; amphipods =
-                           { amphipod with
-                             x = new_x
-                           ; y = new_y
-                           ; state =
-                               (match get_cell_xy burrow new_x new_y with
-                               | Room room_type
-                                 when equal_amphipod_type amphipod.type_
-                                        room_type
-                                      && (is_wall burrow new_x (new_y + 1)
-                                         || List.exists amphipods
-                                              ~f:(fun { x; y; _ } ->
-                                                x = new_x && y = new_y + 1)) ->
-                                   Goal
-                               | _ -> (
-                                   match amphipod.state with
-                                   | Moving -> Moving
-                                   | MovingToGoal -> MovingToGoal
-                                   | Stopped -> MovingToGoal
-                                   | Idle -> Moving
-                                   | Goal ->
-                                       failwith
-                                         "trying to move amphipod from goal"))
-                           }
-                           :: stop_amphipods amphipods
+                           new_amphipod :: stop_amphipods amphipods
+                           |> List.sort ~compare:compare_amphipod
                        }
                      , amphipod.energy )
                    in
@@ -184,6 +198,10 @@ module State = struct
         })
 
   let neighbors ({ burrow; amphipods } : t) : (t * int) list =
+    (* print { burrow; amphipods }; *)
+    (* (match (get_amphipod amphipods 1 1, get_amphipod amphipods 2 1) with
+       | Some { type_ = Amber; _ }, Some { type_ = Amber; _ } -> failwith "here"
+       | _ -> ()); *)
     (* check for invalid states *)
     if
       List.count amphipods ~f:(fun amphipod ->
@@ -273,7 +291,9 @@ module State = struct
              (row :: burrow, amphipods @ new_amphipods))
     in
     let burrow = burrow |> List.rev |> List.to_array in
-    let amphipods = amphipods |> set_goal_states burrow in
+    let amphipods =
+      amphipods |> set_goal_states burrow |> List.sort ~compare:compare_amphipod
+    in
     { burrow; amphipods }
 end
 
@@ -286,10 +306,5 @@ let goal_state =
 let () =
   Astar.path (module State) start_state goal_state |> Option.value_exn
   |> fun (path, cost) ->
-  printf
-    "The amphipods can be organized using a minimum of %d energy with the \
-     following method:\n\n"
-    cost;
-  List.iter path ~f:(fun state ->
-      State.print state;
-      printf "\n%!")
+  printf "The amphipods can be organized using a minimum of %d energy\n%!" cost;
+  List.iter path ~f:State.print

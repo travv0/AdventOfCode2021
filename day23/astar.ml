@@ -30,7 +30,7 @@ let path (type a) (elem : (module Elem with type t = a)) (start : a) (goal : a)
     : (a list * int) option =
   let module Elem = (val elem) in
   let module ElemNode = Node (Elem) in
-  let h = Elem.heuristic goal in
+  let h = Fn.flip Elem.heuristic goal in
   let open_set =
     ref @@ Set.singleton (module ElemNode) { elem = start; f = h start }
   in
