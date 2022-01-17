@@ -1,0 +1,37 @@
+w is input
+x always ends with 1?
+y is ??
+z is if valid
+
+w = 1
+x = 1
+y = 25
+z = 0
+
+if ((x + z) % 26) + n /= w then y is 26 else y is 1
+
+multiply y into z and reset y
+
+store w + m in y and multiply by x (which is 1 if ((x + z) % 26) + n /= w and 0 otherwise)
+
+add y into z
+
+
+
+if (z % 26) + n = w then z <- 0 else z <- z + w + m
+
+                          n          m
+digit  1: div z 1,  add x 11,  add y 6
+digit  2: div z 1,  add x 11,  add y 12
+digit  3: div z 1,  add x 15,  add y 8
+digit  4: div z 26, add x -11, add y 7
+digit  5: div z 1,  add x 15,  add y 7
+digit  6: div z 1,  add x 14,  add y 2
+digit  7: div z 1,  add x 15,  add y 12
+digit  8: div z 26, add x -7,  add y 15
+digit  9: div z 1,  add x 12,  add y 4
+digit 10: div z 26, add x -6,  add y 5
+digit 11: div z 26, add x -10, add y 12
+digit 12: div z 26, add x -15, add y 11
+digit 13: div z 26, add x -9,  add y 13
+digit 14: div z 26, add x 0,   add y 7
