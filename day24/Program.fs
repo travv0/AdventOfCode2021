@@ -71,10 +71,7 @@ module Instruction =
         | Inp a, [] -> failwith "out of input"
         | Add (a, b), rest -> Map.add a (Vars.get a vars + b.Value vars) vars, rest
         | Mul (a, b), rest -> Map.add a (Vars.get a vars * b.Value vars) vars, rest
-        | Div (a, b), rest ->
-            match b.Value vars with
-            | 0L -> failwith "divide by zero"
-            | bv -> Map.add a (Vars.get a vars / bv) vars, rest
+        | Div (a, b), rest -> Map.add a (Vars.get a vars / b.Value vars) vars, rest
         | Mod (a, b), rest ->
             let av = Vars.get a vars
             let bv = b.Value vars
