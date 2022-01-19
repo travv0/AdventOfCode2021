@@ -1,8 +1,11 @@
+*
+!/**/
+!*.*
 bin/
 obj/
 test*.txt
 /*
-!/day[0-1][0-9]
+!/day[0-2][0-9]
 _*
 .*
 
@@ -30,3 +33,4 @@ setup.log
 *.install
 
 dist-newstyle/
+*.hi
