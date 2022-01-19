@@ -116,20 +116,23 @@ playDeterministic = loop One
 
 type HashTable s k v = HT.HashTable s k v
 
-type Key = (Int, PlayerNum, Int, Int, Int, Int)
+newtype Key = Key (Int, PlayerNum, Int, Int, Int, Int) deriving (Eq, Generic)
+instance Hashable Key
+
 type WinCache s = HashTable s Key QuantumWins
 
-makeKey :: Game -> PlayerNum -> (Int, PlayerNum, Int, Int, Int, Int)
+makeKey :: Game -> PlayerNum -> Key
 makeKey game playerNum =
     let playerOne = getPlayer One game
         playerTwo = getPlayer Two game
-    in  ( gameWinningScore game
-        , playerNum
-        , playerPos playerOne
-        , playerScore playerOne
-        , playerPos playerTwo
-        , playerScore playerTwo
-        )
+    in  Key
+            ( gameWinningScore game
+            , playerNum
+            , playerPos playerOne
+            , playerScore playerOne
+            , playerPos playerTwo
+            , playerScore playerTwo
+            )
 
 cacheHit :: WinCache s -> Game -> PlayerNum -> ST s (Maybe QuantumWins)
 cacheHit winCache game playerNum =
