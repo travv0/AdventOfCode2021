@@ -6,6 +6,7 @@ build-depends: base, containers, hashtables, hashable
 
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE Strict #-}
+{-# LANGUAGE LambdaCase #-}
 
 import           Control.Monad.ST               ( ST
                                                 , runST
@@ -135,14 +136,13 @@ cacheHit winCache game playerNum =
     let key = makeKey game playerNum in HT.lookup winCache key
 
 cacheWins :: WinCache s -> Game -> PlayerNum -> QuantumWins -> ST s QuantumWins
-cacheWins winCache game playerNum wins = do
+cacheWins winCache game playerNum wins =
     let key = makeKey game playerNum
-    r <- HT.lookup winCache key
-    case r of
-        Just w  -> return w
-        Nothing -> do
-            HT.insert winCache key wins
-            return wins
+    in  HT.lookup winCache key >>= \case
+            Just w  -> return w
+            Nothing -> do
+                HT.insert winCache key wins
+                return wins
 
 playQuantum :: Game -> QuantumWins
 playQuantum game = runST $ do
@@ -151,23 +151,22 @@ playQuantum game = runST $ do
 
 playQuantum'
     :: WinCache s -> PlayerNum -> Maybe Int -> Game -> ST s QuantumWins
-playQuantum' winCache playerNum spaces game = do
+playQuantum' winCache playerNum spaces game =
     let (player, game') = case spaces of
             Just spc ->
                 let player' = updateScore . move spc $ getPlayer playerNum game
                 in  (player', updatePlayer playerNum player' game)
             Nothing -> (getPlayer playerNum game, game)
-    hit <- cacheHit winCache game' playerNum
-    case hit of
-        Just wins -> return wins
-        Nothing   -> if playerScore player < gameWinningScore game'
-            then
-                do
-                    rollQuantum winCache game' (switchPlayer playerNum) 3 0
-                >>= cacheWins winCache game' playerNum
-            else case playerNum of
-                One -> return Wins { qwPlayerOne = 1, qwPlayerTwo = 0 }
-                Two -> return Wins { qwPlayerOne = 0, qwPlayerTwo = 1 }
+    in  cacheHit winCache game' playerNum >>= \case
+            Just wins -> return wins
+            Nothing   -> if playerScore player < gameWinningScore game'
+                then
+                    do
+                        rollQuantum winCache game' (switchPlayer playerNum) 3 0
+                    >>= cacheWins winCache game' playerNum
+                else case playerNum of
+                    One -> return Wins { qwPlayerOne = 1, qwPlayerTwo = 0 }
+                    Two -> return Wins { qwPlayerOne = 0, qwPlayerTwo = 1 }
 
 rollQuantum
     :: WinCache s -> Game -> PlayerNum -> Int -> Int -> ST s QuantumWins
