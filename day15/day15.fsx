@@ -35,6 +35,8 @@ type Node<'a when 'a :> IComparable and 'a: equality> =
             | 0 -> this.Elem.CompareTo(other.Elem)
             | r -> r
 
+type Coords = Coords of int * int
+
 let parseInput (input: string) =
     input.Split(
         '\n',
@@ -81,11 +83,11 @@ let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> 'ns) when 'ns
     result
 
 let cave = parseInput input
-let heuristic (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
+let heuristic (Coords (x1, y1)) (Coords (x2, y2)) = abs (x2 - x1) + abs (y2 - y1)
 let caveWidth = Array.length cave
 let caveHeight = Array.length cave.[0]
 
-let neighbors maxX maxY (x, y) : ((int * int) * int) list =
+let neighbors maxX maxY (Coords (x, y)) : (Coords * int) list =
     [ (-1, 0); (0, -1); (1, 0); (0, 1) ]
     |> List.choose (fun (dx, dy) ->
         let newX = x + dx
@@ -104,7 +106,7 @@ let neighbors maxX maxY (x, y) : ((int * int) * int) list =
 
                 if temp = 0 then 9 else temp
 
-            Some((newX, newY), shiftedWeight)
+            Some(Coords(newX, newY), shiftedWeight)
         else
             None)
 
@@ -112,7 +114,7 @@ module Part1 =
     let maxX = caveWidth - 1
     let maxY = caveHeight - 1
 
-    astar (0, 0) (maxX, maxY) (heuristic (maxX, maxY)) (neighbors maxX maxY)
+    astar (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
     |> Option.defaultWith (fun () -> failwith "part 1 failed to find path")
     |> (fun { F = cost } -> cost)
     |> printf
@@ -123,7 +125,7 @@ module Part2 =
     let maxX = (caveWidth * 5) - 1
     let maxY = (caveHeight * 5) - 1
 
-    astar (0, 0) (maxX, maxY) (heuristic (maxX, maxY)) (neighbors maxX maxY)
+    astar (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
     |> Option.defaultWith (fun () -> failwith "part 2 failed to find path")
     |> (fun { F = cost } -> cost)
     |> printf
