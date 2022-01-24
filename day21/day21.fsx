@@ -1,6 +1,6 @@
-open System.Collections.Generic
 open System.IO
 
+[<Struct>]
 type PlayerNum =
     | One
     | Two
@@ -11,6 +11,7 @@ module PlayerNum =
         | One -> Two
         | Two -> One
 
+[<Struct>]
 type Player = { Position: int; Score: int }
 
 module Player =
@@ -22,12 +23,14 @@ module Player =
     let updateScore player =
         { player with Score = player.Score + player.Position }
 
+[<Struct>]
 type Game =
     { Die: int
       RollCount: int
       WinningScore: int
       Players: Map<PlayerNum, Player> }
 
+[<Struct>]
 type QuantumWins =
     { PlayerOne: int64
       PlayerTwo: int64 }
@@ -99,14 +102,25 @@ module Game =
 
     module Quantum =
         module private Cache =
-            type private Key = (int * PlayerNum * int * int * int * int)
+            open System.Collections.Concurrent
 
-            let private winCache = Dictionary<Key, QuantumWins>()
+            [<Struct>]
+            type private Key = Key of int * PlayerNum * int * int * int * int
+
+            let private winCache = ConcurrentDictionary<Key, QuantumWins>()
 
             let private makeKey (game: Game) playerNum : Key =
                 let playerOne = getPlayer One game
                 let playerTwo = getPlayer Two game
-                (game.WinningScore, playerNum, playerOne.Position, playerOne.Score, playerTwo.Position, playerTwo.Score)
+
+                Key(
+                    game.WinningScore,
+                    playerNum,
+                    playerOne.Position,
+                    playerOne.Score,
+                    playerTwo.Position,
+                    playerTwo.Score
+                )
 
             let cacheHit (game: Game) playerNum : option<QuantumWins> =
                 let key = makeKey game playerNum
@@ -120,7 +134,7 @@ module Game =
                 let key = makeKey game playerNum
 
                 if not <| winCache.ContainsKey(key) then
-                    winCache.Add(key, wins)
+                    winCache.TryAdd(key, wins) |> ignore
 
                 wins
 
