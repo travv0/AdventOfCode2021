@@ -3,6 +3,7 @@ open System.IO
 open System.Collections.Generic
 
 let konst a _ = a
+let flip f x y = f y x
 
 let fileName =
     match fsi.CommandLineArgs |> Array.toList with
@@ -11,7 +12,7 @@ let fileName =
 
 let input = File.ReadAllText fileName
 
-let getLowestRisk (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<'a * int>)) =
+let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<'a * int>)) =
     let openSet =
         PriorityQueue([ struct (start, h start) ])
 
@@ -29,7 +30,7 @@ let getLowestRisk (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<
         let current = openSet.Dequeue()
 
         if current = goal then
-            result <- Some(gScore current)
+            result <- Some(current, gScore current)
         else
             for (neighbor, d) in neighbors current do
                 let tentativeGScore = gScore current + d
@@ -44,7 +45,12 @@ let getLowestRisk (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<
 
     result
 
-type Coords = Coords of int * int
+type Coords = { X: int; Y: int }
+let (|Coords|) (coords: Coords) = (coords.X, coords.Y)
+
+module Coords =
+    let make x y = { X = x; Y = y }
+    let zero = make 0 0
 
 let parseInput (input: string) =
     input.Split(
@@ -81,25 +87,27 @@ let neighbors maxX maxY (Coords (x, y)) : (Coords * int) list =
 
                 if temp = 0 then 9 else temp
 
-            Some(Coords(newX, newY), shiftedWeight)
+            Some(Coords.make newX newY, shiftedWeight)
         else
             None)
 
-module Part1 =
-    let maxX = caveWidth - 1
-    let maxY = caveHeight - 1
+let getLowestRisk goal =
+    astar Coords.zero goal (flip heuristic goal) (neighbors goal.X goal.Y)
+    |> Option.map snd
 
-    getLowestRisk (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
+let makeGoal mapWidth = Coords.make mapWidth mapWidth
+
+module Part1 =
+    makeGoal (caveWidth - 1)
+    |> getLowestRisk
     |> Option.defaultWith (fun () -> failwith "part 1 failed to find path")
     |> printf
         "The lowest total risk of any path from the top left to the bottom \
         right is %d\n"
 
 module Part2 =
-    let maxX = (caveWidth * 5) - 1
-    let maxY = (caveHeight * 5) - 1
-
-    getLowestRisk (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
+    makeGoal ((caveWidth * 5) - 1)
+    |> getLowestRisk
     |> Option.defaultWith (fun () -> failwith "part 2 failed to find path")
     |> printf
         "Using the full map, the lowest total risk of any path from the top \
