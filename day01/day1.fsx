@@ -6,7 +6,7 @@ let fileName =
     | _ -> "input.txt"
 
 let lines =
-    File.ReadAllText(fileName) |> Seq.map int
+    File.ReadAllLines(fileName) |> Seq.map int
 
 let countIncreases xs =
     let mutable prev = Seq.head xs

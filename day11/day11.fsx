@@ -8,10 +8,24 @@ let fileName =
 
 let input = File.ReadAllText(fileName)
 
-module Main =
+module Octos =
+    type private Octos = int [,]
+
+    let parse (input: string) : Octos =
+        let lines =
+            input.Split(
+                '\n',
+                StringSplitOptions.RemoveEmptyEntries
+                ||| StringSplitOptions.TrimEntries
+            )
+
+        array2D [ for line in lines do
+                      [ for c in line do
+                            sprintf "%c" c |> int ] ]
+
     let mutable private flashes = 0
 
-    let rec private incEnergy (octos: int [,]) x y =
+    let rec private incEnergy (octos: Octos) x y =
         octos.[x, y] <- octos.[x, y] + 1
 
         if octos.[x, y] = 10 then
@@ -25,7 +39,7 @@ module Main =
                 if flashX <> x || flashY <> y then
                     incEnergy octos flashX flashY
 
-    let private step (octos: int [,]) =
+    let private step (octos: Octos) =
         for x in 0 .. Array2D.length1 octos - 1 do
             for y in 0 .. Array2D.length2 octos - 1 do
                 if octos.[x, y] < 10 then
@@ -36,7 +50,8 @@ module Main =
                 if octos.[x, y] > 9 then
                     octos.[x, y] <- 0
 
-    let runSteps n octos =
+    let runSteps n input =
+        let octos = parse input
         flashes <- 0
 
         for _ in 1 .. n do
@@ -44,19 +59,8 @@ module Main =
 
         flashes
 
-    let parse (input: string) : int [,] =
-        let lines =
-            input.Split(
-                '\n',
-                StringSplitOptions.RemoveEmptyEntries
-                ||| StringSplitOptions.TrimEntries
-            )
-
-        array2D [ for line in lines do
-                      [ for c in line do
-                            sprintf "%c" c |> int ] ]
-
-    let findSyncronizedFlash octos =
+    let findSyncronizedFlash input =
+        let octos = parse input
         let mutable stepCount = 0
         let mutable syncronized = false
 
@@ -67,16 +71,10 @@ module Main =
 
         stepCount
 
-    let octos () = parse input
-
-open Main
-
-octos ()
-|> runSteps 100
+Octos.runSteps 100 input
 |> printfn "After 100 steps, there have been a total of %d flashes"
 
-octos ()
-|> findSyncronizedFlash
+Octos.findSyncronizedFlash input
 |> printfn "The first time all octopuses flash simultaneously is step %d"
 
 module Tests =
@@ -93,30 +91,30 @@ module Tests =
     5283751526
     "
 
-    let octos () = parse input
+    let octos () = Octos.parse input
 
     let run () =
         printfn
             "%A"
             {| Expected = 0
-               Actual = octos () |> runSteps 1 |}
+               Actual = Octos.runSteps 1 |}
 
         printfn
             "%A"
             {| Expected = 35
-               Actual = octos () |> runSteps 2 |}
+               Actual = Octos.runSteps 2 |}
 
         printfn
             "%A"
             {| Expected = 204
-               Actual = octos () |> runSteps 10 |}
+               Actual = Octos.runSteps 10 |}
 
         printfn
             "%A"
             {| Expected = 1656
-               Actual = octos () |> runSteps 100 |}
+               Actual = Octos.runSteps 100 |}
 
         printfn
             "%A"
             {| Expected = 195
-               Actual = octos () |> findSyncronizedFlash |}
+               Actual = Octos.findSyncronizedFlash |}
