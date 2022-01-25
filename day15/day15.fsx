@@ -10,43 +10,7 @@ let fileName =
 
 let input = File.ReadAllText fileName
 
-[<CustomEquality; CustomComparison>]
-type Node<'a when 'a :> IComparable and 'a: equality> =
-    { Elem: 'a
-      F: int }
-
-    override this.Equals(other) =
-        match other with
-        | :? Node<'a> as n -> this.Elem = n.Elem && this.F = n.F
-        | _ -> false
-
-    override this.GetHashCode() =
-        this.Elem.GetHashCode() + this.F.GetHashCode()
-
-    interface IComparable with
-        member this.CompareTo(other) =
-            match other with
-            | :? Node<'a> as n -> (this :> IComparable<Node<_>>).CompareTo(n)
-            | _ -> -1
-
-    interface IComparable<Node<'a>> with
-        member this.CompareTo(other) =
-            match this.F.CompareTo(other.F) with
-            | 0 -> this.Elem.CompareTo(other.Elem)
-            | r -> r
-
-type Coords = Coords of int * int
-
-let parseInput (input: string) =
-    input.Split(
-        '\n',
-        StringSplitOptions.RemoveEmptyEntries
-        ||| StringSplitOptions.TrimEntries
-    )
-    |> Array.map (fun line ->
-        line
-        |> Seq.map (fun c -> sprintf "%c" c |> int)
-        |> Seq.toArray)
+type Node<'a> = { F: int; Elem: 'a }
 
 let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> 'ns) when 'ns :> seq<'a * int>) =
     let mutable openSet =
@@ -81,6 +45,19 @@ let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> 'ns) when 'ns
                         openSet <- Set.add { Elem = neighbor; F = fScore } openSet
 
     result
+
+type Coords = Coords of int * int
+
+let parseInput (input: string) =
+    input.Split(
+        '\n',
+        StringSplitOptions.RemoveEmptyEntries
+        ||| StringSplitOptions.TrimEntries
+    )
+    |> Array.map (fun line ->
+        line
+        |> Seq.map (fun c -> sprintf "%c" c |> int)
+        |> Seq.toArray)
 
 let cave = parseInput input
 let heuristic (Coords (x1, y1)) (Coords (x2, y2)) = abs (x2 - x1) + abs (y2 - y1)
