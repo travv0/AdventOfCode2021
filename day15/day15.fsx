@@ -1,5 +1,6 @@
 open System
 open System.IO
+open System.Collections.Generic
 
 let konst a _ = a
 
@@ -10,39 +11,36 @@ let fileName =
 
 let input = File.ReadAllText fileName
 
-type Node<'a> = { F: int; Elem: 'a }
+let getLowestRisk (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<'a * int>)) =
+    let openSet =
+        PriorityQueue([ struct (start, h start) ])
 
-let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> 'ns) when 'ns :> seq<'a * int>) =
-    let mutable openSet =
-        Set.singleton { Elem = start; F = h start }
-
-    let mutable cameFrom = Map.empty
-    let mutable gScoreMap = Map.ofList [ (start, 0) ]
+    let cameFrom = Dictionary()
+    let gScoreMap = Dictionary([ KeyValuePair(start, 0) ])
 
     let gScore node =
-        Map.tryFind node gScoreMap
-        |> Option.defaultValue Int32.MaxValue
+        match gScoreMap.TryGetValue node with
+        | (true, v) -> v
+        | (false, _) -> Int32.MaxValue
 
     let mutable result = None
 
-    while Option.isNone result && not (Set.isEmpty openSet) do
-        let current = Set.minElement openSet
+    while Option.isNone result && openSet.Count > 0 do
+        let current = openSet.Dequeue()
 
-        if current.Elem = goal then
-            result <- Some current
+        if current = goal then
+            result <- Some(gScore current)
         else
-            openSet <- Set.remove current openSet
-
-            for (neighbor, d) in neighbors current.Elem do
-                let tentativeGScore = gScore current.Elem + d
+            for (neighbor, d) in neighbors current do
+                let tentativeGScore = gScore current + d
 
                 if tentativeGScore < gScore neighbor then
-                    cameFrom <- Map.change neighbor (konst (Some current)) cameFrom
-                    gScoreMap <- Map.change neighbor (konst (Some tentativeGScore)) gScoreMap
+                    cameFrom.[neighbor] <- current
+                    gScoreMap.[neighbor] <- tentativeGScore
                     let fScore = tentativeGScore + h neighbor
 
-                    if not (Set.exists (fun { Elem = e } -> e = neighbor) openSet) then
-                        openSet <- Set.add { Elem = neighbor; F = fScore } openSet
+                    if not (Seq.exists (fun struct (e, _) -> e = neighbor) openSet.UnorderedItems) then
+                        openSet.Enqueue(neighbor, fScore)
 
     result
 
@@ -91,9 +89,8 @@ module Part1 =
     let maxX = caveWidth - 1
     let maxY = caveHeight - 1
 
-    astar (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
+    getLowestRisk (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
     |> Option.defaultWith (fun () -> failwith "part 1 failed to find path")
-    |> (fun { F = cost } -> cost)
     |> printf
         "The lowest total risk of any path from the top left to the bottom \
         right is %d\n"
@@ -102,9 +99,8 @@ module Part2 =
     let maxX = (caveWidth * 5) - 1
     let maxY = (caveHeight * 5) - 1
 
-    astar (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
+    getLowestRisk (Coords(0, 0)) (Coords(maxX, maxY)) (heuristic (Coords(maxX, maxY))) (neighbors maxX maxY)
     |> Option.defaultWith (fun () -> failwith "part 2 failed to find path")
-    |> (fun { F = cost } -> cost)
     |> printf
         "Using the full map, the lowest total risk of any path from the top \
         left to the bottom right is %d\n"
