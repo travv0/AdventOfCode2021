@@ -62,11 +62,12 @@ let parseInput (input: string) =
         line
         |> Seq.map (fun c -> sprintf "%c" c |> int)
         |> Seq.toArray)
+    |> array2D
 
 let cave = parseInput input
 let heuristic (Coords (x1, y1)) (Coords (x2, y2)) = abs (x2 - x1) + abs (y2 - y1)
-let caveWidth = Array.length cave
-let caveHeight = Array.length cave.[0]
+let caveWidth = Array2D.length2 cave
+let caveHeight = Array2D.length1 cave
 
 let neighbors maxX maxY (Coords (x, y)) : (Coords * int) list =
     [ (-1, 0); (0, -1); (1, 0); (0, 1) ]
@@ -82,7 +83,7 @@ let neighbors maxX maxY (Coords (x, y)) : (Coords * int) list =
 
             let shiftedWeight =
                 let temp =
-                    (cave.[newX % caveWidth].[newY % caveHeight]
+                    (cave.[newY % caveHeight, newX % caveWidth]
                      + tileDistance) % 9
 
                 if temp = 0 then 9 else temp
