@@ -1,6 +1,13 @@
 open System
 open System.IO
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let input = File.ReadAllText(fileName)
+
 module Main =
     let mutable private flashes = 0
 
@@ -36,8 +43,6 @@ module Main =
             step octos
 
         flashes
-
-    let input = File.ReadAllText("input.txt")
 
     let parse (input: string) : int [,] =
         let lines =

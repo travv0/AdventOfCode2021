@@ -1,7 +1,12 @@
 open System
 open System.IO
 
-let input = File.ReadAllText("input.txt")
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let input = File.ReadAllText(fileName)
 
 type Bit =
     | Zero
@@ -173,7 +178,7 @@ module Packet =
 let packet = Packet.parse input
 
 Packet.sumVersions packet
-|> printf "The version sum of the package hierarchy is %d\n"
+|> printfn "The version sum of the package hierarchy is %d"
 
 Packet.value packet
-|> printf "The value of the transmission is %d\n"
+|> printfn "The value of the transmission is %d"

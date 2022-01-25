@@ -17,8 +17,13 @@ let parseLine (line: string) =
     | [| command; units |] -> Some(string command |> parseCommand, units |> string |> int)
     | _ -> None
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let commands =
-    File.ReadLines("input.txt")
+    File.ReadLines(fileName)
     |> Seq.choose parseLine
 
 module Part1 =

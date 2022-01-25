@@ -18,7 +18,12 @@ type Paper = Set<Coords>
 type Fold = { Axis: Axis; Coord: int }
 type ParseResult = { Paper: Paper; FoldQueue: list<Fold> }
 
-let input = File.ReadAllText("input.txt")
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let input = File.ReadAllText(fileName)
 
 let parseCoords (s: string) =
     match s.Split(',') with
@@ -82,7 +87,7 @@ let printPaper paper =
             else
                 printf "."
 
-        printf "\n"
+        printfn ""
 
 let { Paper = paper; FoldQueue = foldQueue } = parseInput input
 
@@ -100,7 +105,7 @@ let rec foldPaper foldQueue paper =
 paper
 |> foldPaper [ List.head foldQueue ]
 |> Set.count
-|> printf "After the first fold, only %d dots are visible\n"
+|> printfn "After the first fold, only %d dots are visible"
 
-printf "The code to activate the infrared thermal imaging camera system is\n"
+printfn "The code to activate the infrared thermal imaging camera system is"
 paper |> foldPaper foldQueue |> printPaper

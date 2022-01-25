@@ -124,7 +124,7 @@ processedLines
     | _ -> None)
 |> Seq.map scoreSyntaxError
 |> Seq.reduce (+)
-|> printf "The total syntax error score is %d points\n"
+|> printfn "The total syntax error score is %d points"
 
 let autocompleteScores =
     processedLines
@@ -135,4 +135,4 @@ let autocompleteScores =
     |> Seq.sort
 
 Seq.item (Seq.length autocompleteScores / 2) autocompleteScores
-|> printf "The middle autocomplete score is %A points\n"
+|> printfn "The middle autocomplete score is %A points"

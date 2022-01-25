@@ -110,8 +110,13 @@ let countLitPixels image =
     |> Seq.filter (snd >> (=) Light)
     |> Seq.length
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let (alg, image) =
-    File.ReadAllText("input.txt") |> parseInput
+    File.ReadAllText(fileName) |> parseInput
 
 let pixelCountAfter n =
     enhanceTimes n alg image |> countLitPixels

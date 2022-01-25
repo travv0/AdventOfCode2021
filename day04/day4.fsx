@@ -80,8 +80,13 @@ let rec findWinningScore lastCalled queue boards =
 
 let findFirstWinningScore queue boards = findWinningScore 0u queue boards
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let { Queue = queue; Boards = boards } =
-    File.ReadAllText("input.txt") |> parseInput
+    File.ReadAllText(fileName) |> parseInput
 
 findFirstWinningScore queue boards
 |> printfn "Score of first card to win: %d"

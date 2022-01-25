@@ -102,14 +102,10 @@ module Part1 =
     makeGoal (caveWidth - 1)
     |> getLowestRisk
     |> Option.defaultWith (fun () -> failwith "part 1 failed to find path")
-    |> printf
-        "The lowest total risk of any path from the top left to the bottom \
-        right is %d\n"
+    |> printfn "The lowest total risk of any path from the top left to the bottom right is %d"
 
 module Part2 =
     makeGoal ((caveWidth * 5) - 1)
     |> getLowestRisk
     |> Option.defaultWith (fun () -> failwith "part 2 failed to find path")
-    |> printf
-        "Using the full map, the lowest total risk of any path from the top \
-        left to the bottom right is %d\n"
+    |> printfn "Using the full map, the lowest total risk of any path from the top left to the bottom right is %d"

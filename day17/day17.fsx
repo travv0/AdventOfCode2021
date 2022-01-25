@@ -1,7 +1,12 @@
 open System.IO
 open System.Text.RegularExpressions
 
-let input = File.ReadAllText("input.txt")
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let input = File.ReadAllText(fileName)
 
 type Probe =
     { X: int
@@ -78,10 +83,8 @@ let hits =
 
 hits
 |> List.max
-|> printf "The highest y position the probe can reach is %d\n"
+|> printfn "The highest y position the probe can reach is %d"
 
 hits
 |> List.length
-|> printf
-    "There are %d distinct initial velocity values that cause the probe to \
-fall within the target area\n"
+|> printfn "There are %d distinct initial velocity values that cause the probe to fall within the target area"

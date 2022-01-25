@@ -3,6 +3,7 @@ obj/
 test*.txt
 /*
 !/day[0-2][0-9]
+!/run.fsx
 _*
 .*
 

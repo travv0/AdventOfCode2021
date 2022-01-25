@@ -56,8 +56,13 @@ let findRiskLevels map =
     |> Seq.map (fun (x, y) -> map.[x, y] + 1)
     |> Seq.toList
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let map =
-    File.ReadAllText("input.txt") |> parseInput
+    File.ReadAllText(fileName) |> parseInput
 
 findRiskLevels map
 |> List.sum

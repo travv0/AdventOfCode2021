@@ -1,7 +1,12 @@
 ﻿open System.IO
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let lines =
-    File.ReadAllLines("input.txt") |> Seq.map int
+    File.ReadAllText(fileName) |> Seq.map int
 
 let countIncreases xs =
     let mutable prev = Seq.head xs

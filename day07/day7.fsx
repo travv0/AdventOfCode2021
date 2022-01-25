@@ -6,8 +6,13 @@ let parseInput (input: string) =
     |> Seq.map int
     |> List.ofSeq
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let positions =
-    File.ReadAllText("input.txt") |> parseInput
+    File.ReadAllText(fileName) |> parseInput
 
 let inline cost r = (^T: (member Cost : int) r)
 

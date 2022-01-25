@@ -1,7 +1,12 @@
 open System
 open System.IO
 
-let input = File.ReadAllText("input.txt")
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let input = File.ReadAllText(fileName)
 
 type Polymer = Map<string, int64>
 type Rules = Map<string, char>
@@ -90,12 +95,10 @@ let subtractLeastCommonFromMostCommon polymer =
 
 stepTimes 10 rules polymer
 |> subtractLeastCommonFromMostCommon
-|> printf
-    "After 10 steps, the quantity of the least common element subtracted \
-from the quantity of the most common element is %d\n"
+|> printfn
+    "After 10 steps, the quantity of the least common element subtracted from the quantity of the most common element is %d"
 
 stepTimes 40 rules polymer
 |> subtractLeastCommonFromMostCommon
-|> printf
-    "After 40 steps, the quantity of the least common element subtracted \
-from the quantity of the most common element is %d\n"
+|> printfn
+    "After 40 steps, the quantity of the least common element subtracted from the quantity of the most common element is %d"

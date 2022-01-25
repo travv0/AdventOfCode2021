@@ -4,7 +4,12 @@ open System.IO
 type Coords = { X: int; Y: int }
 type Line = { Start: Coords; End: Coords }
 
-let input = File.ReadAllText("input.txt")
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let input = File.ReadAllText(fileName)
 
 let parseCoords (coords: string) =
     match coords.Split(",") with

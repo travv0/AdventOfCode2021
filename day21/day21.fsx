@@ -187,8 +187,13 @@ let parseInput (input: string) =
     | [| one; two |] -> (one.Split(' ') |> Array.last |> int, two.Split(' ') |> Array.last |> int)
     | _ -> failwith "bad parse"
 
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
 let playerOnePos, playerTwoPos =
-    File.ReadAllText("input.txt") |> parseInput
+    File.ReadAllText(fileName) |> parseInput
 
 calcPart1 playerOnePos playerTwoPos
 |> printfn "The score of the losing player multiplied by the number of times the die was rolled is %d"

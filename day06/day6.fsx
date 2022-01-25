@@ -36,8 +36,12 @@ let rec stepTimes (n: int) (fishes: Fishes) : Fishes =
     | 0 -> fishes
     | n -> stepTimes (n - 1) (step fishes)
 
-let fishes =
-    File.ReadAllText("input.txt") |> parseInput
+let fileName =
+    match fsi.CommandLineArgs |> Array.toList with
+    | _ :: fn :: _ -> fn
+    | _ -> "input.txt"
+
+let fishes = File.ReadAllText(fileName) |> parseInput
 
 stepTimes 80 fishes
 |> Seq.sum
