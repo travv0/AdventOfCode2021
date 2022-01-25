@@ -80,7 +80,7 @@ let rec findWinningScore lastCalled queue boards =
 
 let findFirstWinningScore queue boards = findWinningScore 0u queue boards
 
-let { Queue = queue; Boards = boards } = //parseInput testInput
+let { Queue = queue; Boards = boards } =
     File.ReadAllText("input.txt") |> parseInput
 
 findFirstWinningScore queue boards
