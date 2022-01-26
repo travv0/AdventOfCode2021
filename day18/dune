@@ -1,0 +1,6 @@
+(executable
+ (name day18)
+ (libraries base stdio))
+
+(cram
+ (deps day18.exe))
