@@ -53,7 +53,8 @@ main = do
 
         fsharpPathExists  <- doesFileExist fsharpPath
         ocamlPathExists   <- doesFileExist $ path <.> "ml"
-        haskellPathExists <- doesFileExist $ path <.> "cabal"
+        cabalPathExists   <- doesFileExist $ path <.> "cabal"
+        haskellPathExists <- doesFileExist $ path <.> ".hs"
 
         S.shelly . S.verbosely $ do
             if
@@ -70,9 +71,12 @@ main = do
                         Nothing -> do
                             S.silently $ S.run_ "powershell" ["esy.ps1"]
                             S.run_ "powershell" ["esy.ps1", "run"]
+                | cabalPathExists -> do
+                    S.cd dir
+                    S.run_ "cabal" ["run", "-v0", T.pack file]
                 | haskellPathExists -> do
                     S.cd dir
-                    S.run_ "cabal" ["run", "-v0", T.pack $ "day" <> show i]
+                    S.run_ "cabal" ["run", "-v0", T.pack $ file <> ".hs"]
                 | otherwise -> S.echo $ "Nothing to run for day " <> T.pack
                     (show i)
 

@@ -1,9 +1,11 @@
+*
+!/**/
+!*.*
 bin/
 obj/
 test*.txt
 /*
 !/day[0-2][0-9]
-!/run.fsx
 _*
 .*
 
@@ -33,3 +35,4 @@ setup.log
 
 dist*
 *.fsproj
+*.hi
