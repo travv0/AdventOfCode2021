@@ -74,4 +74,3 @@ oxygenGeneratorRating =
 co2ScrubberRating :: [String] -> Int
 co2ScrubberRating =
   calcRating (\zeros ones -> if zeros > ones then '1' else '0')
-

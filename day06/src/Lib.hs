@@ -21,7 +21,7 @@ countBy f = map (f . head &&& fromIntegral . length) . group . sort
 
 parseInput :: String -> Fishes
 parseInput input = fromList
-  $ map (\i -> fromMaybe 0 . lookup i $ counts) [0 .. 8]
+  $ map (\i -> fromMaybe 0 . lookup i $ counts) [0 :: Integer .. 8]
  where
   fishNums = splitOn "," $ filter (not . isSpace) input
   counts   = countBy read fishNums
