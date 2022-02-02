@@ -15,15 +15,15 @@ let charToPixel =
     function
     | '#' -> Light
     | '.' -> Dark
-    | p -> failwithf "bad pixel %c" p
+    | p -> failwithf "bad pixel `%c`" p
 
 let parseInput (input: string) : (EnhancementAlg * Image) =
-    match input.Split("\n\n") with
+    match input.Split([| "\r\n\r\n"; "\n\n" |], StringSplitOptions.TrimEntries) with
     | [| alg; img |] ->
         let algorithm = Seq.map charToPixel alg |> Seq.toArray
 
         let image =
-            Map.ofList [ for y, row in Seq.indexed (img.Split('\n')) do
+            Map.ofList [ for y, row in Seq.indexed (img.Split('\n', StringSplitOptions.TrimEntries)) do
                              yield ((-1, y), Dark)
 
                              for x, char in Seq.indexed row do
@@ -115,8 +115,7 @@ let fileName =
     | _ :: fn :: _ -> fn
     | _ -> "input.txt"
 
-let (alg, image) =
-    File.ReadAllText(fileName) |> parseInput
+let (alg, image) = File.ReadAllText(fileName) |> parseInput
 
 let pixelCountAfter n =
     enhanceTimes n alg image |> countLitPixels

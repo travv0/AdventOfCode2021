@@ -1,3 +1,4 @@
+open System
 open System.IO
 
 type Coords = { X: int; Y: int }
@@ -38,7 +39,7 @@ let parseFold (s: string) =
     | _ -> failwithf "bad parse: %s" s
 
 let parseInput (input: string) : ParseResult =
-    match input.Trim().Split("\n\n") with
+    match input.Split([| "\r\n\r\n"; "\n\n" |], StringSplitOptions.TrimEntries) with
     | [| coords; folds |] ->
         let paper =
             coords.Split('\n')

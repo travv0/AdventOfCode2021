@@ -42,7 +42,7 @@ let makePolymer s =
     |> Map.ofListFold (+) 0
 
 let parseInput (input: string) : ParseResult =
-    match input.Trim().Split("\n\n") with
+    match input.Split([| "\r\n\r\n"; "\n\n" |], StringSplitOptions.TrimEntries) with
     | [| polymer; rules |] ->
         let polymer = makePolymer polymer
 

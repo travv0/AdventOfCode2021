@@ -29,11 +29,13 @@ for i in nums do
     let file = sprintf "day%d.fsx" i
     let path = dir +/ file
 
-    if File.Exists(path) then
-        printfn "Day %d:" i
+    printfn "Day %d:" i
 
+    if File.Exists(path) then
         CreateProcess.fromRawCommand "dotnet" [ "fsi"; path; dir +/ "input.txt" ]
         |> Proc.run
         |> ignore
+    else
+        printfn "Nothing to run for day %d" i
 
-        printfn ""
+    printfn ""
