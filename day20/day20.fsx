@@ -1,11 +1,12 @@
 ﻿open System
 open System.IO
 
+[<Struct>]
 type Pixel =
     | Light
     | Dark
 
-type Coords = (int * int)
+type Coords = { X: int; Y: int }
 
 type EnhancementAlg = Pixel []
 
@@ -24,21 +25,21 @@ let parseInput (input: string) : (EnhancementAlg * Image) =
 
         let image =
             Map.ofList [ for y, row in Seq.indexed (img.Split('\n', StringSplitOptions.TrimEntries)) do
-                             yield ((-1, y), Dark)
+                             yield ({ X = -1; Y = y }, Dark)
 
                              for x, char in Seq.indexed row do
-                                 yield ((x, y), charToPixel char) ]
+                                 yield ({ X = x; Y = y }, charToPixel char) ]
 
         (algorithm, image)
     | _ -> failwith "bad parse"
 
-let getBinary def image (x, y) =
+let getBinary def image { X = x; Y = y } =
     let pixelToBit =
         function
         | Dark -> '0'
         | Light -> '1'
 
-    let makeCoords dx dy = (x + dx, y + dy)
+    let makeCoords dx dy = { X = x + dx; Y = y + dy }
 
     let coordsGrid =
         [| for y in [ -1; 0; 1 ] do
@@ -63,12 +64,12 @@ type Bounds =
       MinY: int
       MaxY: int }
 
-let getBounds image =
-    Seq.fold
+let getBounds (image: Image) =
+    Map.fold
         (fun { MinX = minX
                MaxX = mixX
                MinY = minY
-               MaxY = mixY } (x, y) ->
+               MaxY = mixY } { X = x; Y = y } _ ->
             { MinX = min minX x
               MaxX = max mixX x
               MinY = min minY y
@@ -77,7 +78,7 @@ let getBounds image =
           MaxX = Int32.MinValue
           MinY = Int32.MaxValue
           MaxY = Int32.MinValue }
-        (Map.keys image)
+        image
 
 let relevantCoords
     { MinX = minX
@@ -87,11 +88,11 @@ let relevantCoords
     =
     [ for y in [ minY - 1 .. maxY + 1 ] do
           for x in [ minX - 1 .. maxX + 1 ] do
-              yield (x, y) ]
+              { X = x; Y = y } ]
 
-let defaultPixel { MinX = minX; MinY = minY } image = Map.find (minX, minY) image
+let defaultPixel { MinX = minX; MinY = minY } image = Map.find { X = minX; Y = minY } image
 
-let enhanceImage (alg: EnhancementAlg) image =
+let enhanceImage (alg: EnhancementAlg) (image: Image) =
     let bounds = getBounds image
 
     relevantCoords bounds
@@ -104,11 +105,10 @@ let rec enhanceTimes n (alg: EnhancementAlg) (image: Image) =
     else
         enhanceImage alg image |> enhanceTimes (n - 1) alg
 
-let countLitPixels image =
+let countLitPixels (image: Image) =
     image
-    |> Map.toSeq
-    |> Seq.filter (snd >> (=) Light)
-    |> Seq.length
+    |> Map.filter (fun _ pixel -> pixel = Light)
+    |> Map.count
 
 let fileName =
     match fsi.CommandLineArgs |> Array.toList with

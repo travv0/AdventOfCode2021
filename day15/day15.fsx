@@ -12,7 +12,9 @@ let fileName =
 
 let input = File.ReadAllText fileName
 
-let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<'a * int>)) =
+type Neighbor<'a> = { Node: 'a; Weight: int }
+
+let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<Neighbor<'a>>)) =
     let openSet =
         PriorityQueue([ struct (start, h start) ])
 
@@ -32,7 +34,7 @@ let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<'a * int
         if current = goal then
             result <- Some(current, gScore current)
         else
-            for (neighbor, d) in neighbors current do
+            for { Node = neighbor; Weight = d } in neighbors current do
                 let tentativeGScore = gScore current + d
 
                 if tentativeGScore < gScore neighbor then
@@ -69,7 +71,7 @@ let heuristic (Coords (x1, y1)) (Coords (x2, y2)) = abs (x2 - x1) + abs (y2 - y1
 let caveWidth = Array2D.length2 cave
 let caveHeight = Array2D.length1 cave
 
-let neighbors maxX maxY (Coords (x, y)) : (Coords * int) list =
+let neighbors maxX maxY (Coords (x, y)) =
     [ (-1, 0); (0, -1); (1, 0); (0, 1) ]
     |> List.choose (fun (dx, dy) ->
         let newX = x + dx
@@ -88,7 +90,9 @@ let neighbors maxX maxY (Coords (x, y)) : (Coords * int) list =
 
                 if temp = 0 then 9 else temp
 
-            Some(Coords.make newX newY, shiftedWeight)
+            Some
+                { Node = Coords.make newX newY
+                  Weight = shiftedWeight }
         else
             None)
 

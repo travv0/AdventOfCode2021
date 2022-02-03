@@ -10,19 +10,18 @@ let (+/) (path1: string) path2 = Path.Join(path1, path2)
 
 let selectedNums =
     fsi.CommandLineArgs
-    |> Seq.choose (fun s ->
+    |> Array.choose (fun s ->
         match Int32.TryParse(s) with
         | (true, i) -> Some i
         | (false, _) -> None)
 
 let nums =
-    if Seq.isEmpty selectedNums then
-        [ 1 .. 25 ]
+    if Array.isEmpty selectedNums then
+        [| 1 .. 25 |]
     else
         selectedNums
-        |> Seq.filter (fun i -> i > 0 && i <= 25)
-        |> Seq.sort
-        |> Seq.toList
+        |> Array.filter (fun i -> i > 0 && i <= 25)
+        |> Array.sort
 
 for i in nums do
     let dir = sprintf "day%02d" i
