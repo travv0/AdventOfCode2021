@@ -10,13 +10,13 @@ let lines =
 
 let countIncreases xs =
     let mutable prev = Seq.head xs
+    let mutable count = 0
 
-    seq {
-        for x in Seq.tail xs do
-            if x > prev then yield ()
-            prev <- x
-    }
-    |> Seq.length
+    for x in Seq.tail xs do
+        if x > prev then count <- count + 1
+        prev <- x
+
+    count
 
 countIncreases lines
 |> printfn "Number of times depth increases: %d"
