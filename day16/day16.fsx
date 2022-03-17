@@ -95,11 +95,11 @@ module Packet =
         let rec parseLiteral' num =
             function
             | checkBit :: binary ->
-                (let chunk, remaining = List.splitAt 4 binary
+                let chunk, remaining = List.splitAt 4 binary
 
-                 match checkBit with
-                 | Zero -> (Binary.toInt64 (num @ chunk), remaining)
-                 | One -> parseLiteral' (num @ chunk) remaining)
+                match checkBit with
+                | Zero -> (Binary.toInt64 (num @ chunk), remaining)
+                | One -> parseLiteral' (num @ chunk) remaining
             | _ -> failwith "parseLiteral': empty binary"
 
         parseLiteral' [] binary
@@ -137,7 +137,10 @@ module Packet =
             parseMany
             >> function
                 | [ a; b ], c -> ((a, b), c)
-                | l, _ -> failwithf "parseTwo: invalid number of elements: %d" (List.length l)
+                | l, _ ->
+                    failwithf
+                        "parseTwo: invalid number of elements: %d"
+                        (List.length l)
 
         let v, binary = List.splitAt 3 binary
         let version = Binary.toInt64 v
@@ -145,14 +148,38 @@ module Packet =
 
         let data, remaining =
             match Binary.toInt64 type_ with
-            | 0L -> let packet, remaining = parseMany binary in (Sum packet, remaining)
-            | 1L -> let packet, remaining = parseMany binary in (Product packet, remaining)
-            | 2L -> let packet, remaining = parseMany binary in (Minimum packet, remaining)
-            | 3L -> let packet, remaining = parseMany binary in (Maximum packet, remaining)
-            | 4L -> let literal, remaining = parseLiteral binary in (Literal literal, remaining)
-            | 5L -> let packet, remaining = parseTwo binary in (GreaterThan packet, remaining)
-            | 6L -> let packet, remaining = parseTwo binary in (LessThan packet, remaining)
-            | 7L -> let packet, remaining = parseTwo binary in (EqualTo packet, remaining)
+            | 0L ->
+                let packet, remaining = parseMany binary in
+
+                (Sum packet, remaining)
+            | 1L ->
+                let packet, remaining = parseMany binary in
+
+                (Product packet, remaining)
+            | 2L ->
+                let packet, remaining = parseMany binary in
+
+                (Minimum packet, remaining)
+            | 3L ->
+                let packet, remaining = parseMany binary in
+
+                (Maximum packet, remaining)
+            | 4L ->
+                let literal, remaining = parseLiteral binary in
+
+                (Literal literal, remaining)
+            | 5L ->
+                let packet, remaining = parseTwo binary in
+
+                (GreaterThan packet, remaining)
+            | 6L ->
+                let packet, remaining = parseTwo binary in
+
+                (LessThan packet, remaining)
+            | 7L ->
+                let packet, remaining = parseTwo binary in
+
+                (EqualTo packet, remaining)
             | _ -> failwith "parsePacket: bad packet"
 
         ({ Version = version; Data = data }, remaining)

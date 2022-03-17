@@ -18,13 +18,16 @@ let charToPixel =
     | '.' -> Dark
     | p -> failwithf "bad pixel `%c`" p
 
-let parseInput (input: string) : (EnhancementAlg * Image) =
+let parseInput (input: string) : EnhancementAlg * Image =
     match input.Split([| "\r\n\r\n"; "\n\n" |], StringSplitOptions.TrimEntries) with
     | [| alg; img |] ->
         let algorithm = Seq.map charToPixel alg |> Seq.toArray
 
         let image =
-            Map.ofList [ for y, row in Seq.indexed (img.Split('\n', StringSplitOptions.TrimEntries)) do
+            Map.ofList [ for y, row in
+                             Seq.indexed (
+                                 img.Split('\n', StringSplitOptions.TrimEntries)
+                             ) do
                              yield ({ X = -1; Y = y }, Dark)
 
                              for x, char in Seq.indexed row do
@@ -90,13 +93,15 @@ let relevantCoords
           for x in [ minX - 1 .. maxX + 1 ] do
               { X = x; Y = y } ]
 
-let defaultPixel { MinX = minX; MinY = minY } image = Map.find { X = minX; Y = minY } image
+let defaultPixel { MinX = minX; MinY = minY } image =
+    Map.find { X = minX; Y = minY } image
 
 let enhanceImage (alg: EnhancementAlg) (image: Image) =
     let bounds = getBounds image
 
     relevantCoords bounds
-    |> List.map (fun c -> (c, getOutputPixel (defaultPixel bounds image) alg image c))
+    |> List.map
+        (fun c -> (c, getOutputPixel (defaultPixel bounds image) alg image c))
     |> Map.ofList
 
 let rec enhanceTimes n (alg: EnhancementAlg) (image: Image) =
@@ -115,7 +120,8 @@ let fileName =
     | _ :: fn :: _ -> fn
     | _ -> "input.txt"
 
-let (alg, image) = File.ReadAllText(fileName) |> parseInput
+let alg, image =
+    File.ReadAllText(fileName) |> parseInput
 
 let pixelCountAfter n =
     enhanceTimes n alg image |> countLitPixels
@@ -124,4 +130,5 @@ pixelCountAfter 2
 |> printfn "After enhancing the original input image twice, %d pixels are lit"
 
 pixelCountAfter 50
-|> printfn "After enhancing the original input image 50 times, %d pixels are lit"
+|> printfn
+    "After enhancing the original input image 50 times, %d pixels are lit"

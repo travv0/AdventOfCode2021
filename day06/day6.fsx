@@ -62,9 +62,17 @@ module Tests =
     let run () =
         printResult (parseInput "3,4,3,1,2") [ 0; 1; 1; 2; 1; 0; 0; 0; 0 ]
 
-        printResult (step [ 0; 1; 1; 2; 1; 0; 0; 0; 0 ]) [ 1; 1; 2; 1; 0; 0; 0; 0; 0 ]
-        printResult (step [ 1; 1; 2; 1; 0; 0; 0; 0; 0 ]) [ 1; 2; 1; 0; 0; 0; 1; 0; 1 ]
-        printResult (step [ 1; 2; 1; 0; 0; 0; 1; 0; 1 ]) [ 2; 1; 0; 0; 0; 1; 1; 1; 1 ]
+        printResult
+            (step [ 0; 1; 1; 2; 1; 0; 0; 0; 0 ])
+            [ 1; 1; 2; 1; 0; 0; 0; 0; 0 ]
+
+        printResult
+            (step [ 1; 1; 2; 1; 0; 0; 0; 0; 0 ])
+            [ 1; 2; 1; 0; 0; 0; 1; 0; 1 ]
+
+        printResult
+            (step [ 1; 2; 1; 0; 0; 0; 1; 0; 1 ])
+            [ 2; 1; 0; 0; 0; 1; 1; 1; 1 ]
 
         printResult
             (stepTimes 18 [ 0; 1; 1; 2; 1; 0; 0; 0; 0 ]

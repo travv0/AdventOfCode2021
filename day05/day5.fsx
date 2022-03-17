@@ -72,7 +72,8 @@ let calcOverlaps lines =
 lines
 |> Seq.filter isHorizontalOrVertical
 |> calcOverlaps
-|> printfn "Number of points where at least two horizontal or vertical lines overlap: %d"
+|> printfn
+    "Number of points where at least two horizontal or vertical lines overlap: %d"
 
 lines
 |> calcOverlaps

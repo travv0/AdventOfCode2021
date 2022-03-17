@@ -35,7 +35,8 @@ module Octos =
         flashes <- flashes + 1
 
         for flashX in max (x - 1) 0 .. min (x + 1) (Array2D.length1 octos - 1) do
-            for flashY in max (y - 1) 0 .. min (y + 1) (Array2D.length2 octos - 1) do
+            for flashY in
+                max (y - 1) 0 .. min (y + 1) (Array2D.length2 octos - 1) do
                 if flashX <> x || flashY <> y then
                     incEnergy octos flashX flashY
 
@@ -59,22 +60,22 @@ module Octos =
 
         flashes
 
-    let findSyncronizedFlash input =
+    let findSynchronizedFlash input =
         let octos = parse input
         let mutable stepCount = 0
-        let mutable syncronized = false
+        let mutable synchronized = false
 
-        while not syncronized do
+        while not synchronized do
             step octos
             stepCount <- stepCount + 1
-            syncronized <- octos |> Seq.cast |> Seq.forall ((=) 0)
+            synchronized <- octos |> Seq.cast |> Seq.forall ((=) 0)
 
         stepCount
 
 Octos.runSteps 100 input
 |> printfn "After 100 steps, there have been a total of %d flashes"
 
-Octos.findSyncronizedFlash input
+Octos.findSynchronizedFlash input
 |> printfn "The first time all octopuses flash simultaneously is step %d"
 
 module Tests =
@@ -117,4 +118,4 @@ module Tests =
         printfn
             "%A"
             {| Expected = 195
-               Actual = Octos.findSyncronizedFlash |}
+               Actual = Octos.findSynchronizedFlash |}

@@ -59,7 +59,8 @@ let foldHorizontal foldY (paper: Paper) : Paper =
         Set.partition (fun c -> c.Y > foldY) paper
 
     wereDots
-    |> Set.map (fun ({ Y = y } as coords) -> { coords with Y = foldY - (y - foldY) })
+    |> Set.map
+        (fun ({ Y = y } as coords) -> { coords with Y = foldY - (y - foldY) })
     |> Set.union areDots
 
 
@@ -68,7 +69,8 @@ let foldVertical foldX (paper: Paper) : Paper =
         Set.partition (fun c -> c.X > foldX) paper
 
     wereDots
-    |> Set.map (fun ({ X = x } as coords) -> { coords with X = foldX - (x - foldX) })
+    |> Set.map
+        (fun ({ X = x } as coords) -> { coords with X = foldX - (x - foldX) })
     |> Set.union areDots
 
 let printPaper paper =

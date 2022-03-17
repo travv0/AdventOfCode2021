@@ -9,15 +9,19 @@ let getAdjacentLocations (x: int) (y: int) (map: int [,]) =
         0, 1
     }
     |> Seq.map (fun (dx, dy) -> x + dx, y + dy)
-    |> Seq.filter (fun (adjX, adjY) ->
-        adjX >= 0
-        && adjX < Array2D.length1 map
-        && adjY >= 0
-        && adjY < Array2D.length2 map)
+    |> Seq.filter
+        (fun (adjX, adjY) ->
+            adjX >= 0
+            && adjX < Array2D.length1 map
+            && adjY >= 0
+            && adjY < Array2D.length2 map)
 
 module Array2D =
     let transpose array =
-        Array2D.init (Array2D.length2 array) (Array2D.length1 array) (fun r c -> array.[c, r])
+        Array2D.init
+            (Array2D.length2 array)
+            (Array2D.length1 array)
+            (fun r c -> array.[c, r])
 
 let parseInput (input: string) =
     input.Split(
@@ -61,8 +65,7 @@ let fileName =
     | _ :: fn :: _ -> fn
     | _ -> "input.txt"
 
-let map =
-    File.ReadAllText(fileName) |> parseInput
+let map = File.ReadAllText(fileName) |> parseInput
 
 findRiskLevels map
 |> List.sum
@@ -73,9 +76,10 @@ let getBasin x y map =
 
     let getBasinAdjacents x y =
         getAdjacentLocations x y map
-        |> Seq.filter (fun (adjX, adjY) ->
-            map.[adjX, adjY] <> 9
-            && not (seen |> Set.contains (adjX, adjY)))
+        |> Seq.filter
+            (fun (adjX, adjY) ->
+                map.[adjX, adjY] <> 9
+                && not (seen |> Set.contains (adjX, adjY)))
         |> Set.ofSeq
 
     let mutable locationsToCheck = getBasinAdjacents x y
@@ -83,7 +87,12 @@ let getBasin x y map =
     while Set.count locationsToCheck > 0 do
         let locSeq = locationsToCheck |> Set.toSeq
         let location = Seq.head locSeq
-        locationsToCheck <- Set.union (location ||> getBasinAdjacents) (Seq.tail locSeq |> Set.ofSeq)
+
+        locationsToCheck <-
+            Set.union
+                (location ||> getBasinAdjacents)
+                (Seq.tail locSeq |> Set.ofSeq)
+
         seen <- Set.add location seen
 
     List.ofSeq seen
@@ -112,7 +121,7 @@ module Tests =
         printfn
             "%A"
             {| result with
-                Equal = result.Expected = result.Actual |}
+                   Equal = result.Expected = result.Actual |}
 
     let run () =
         printResult
@@ -125,49 +134,49 @@ module Tests =
 
         printResult
             {| Expected =
-                [ (5, 0)
-                  (6, 0)
-                  (7, 0)
-                  (8, 0)
-                  (9, 0)
-                  (6, 1)
-                  (8, 1)
-                  (9, 1)
-                  (9, 2) ]
-                |> List.sort
+                   [ (5, 0)
+                     (6, 0)
+                     (7, 0)
+                     (8, 0)
+                     (9, 0)
+                     (6, 1)
+                     (8, 1)
+                     (9, 1)
+                     (9, 2) ]
+                   |> List.sort
                Actual = getBasin 9 0 map |> List.sort |}
 
         printResult
             {| Expected =
-                [ (2, 1)
-                  (3, 1)
-                  (4, 1)
-                  (1, 2)
-                  (2, 2)
-                  (3, 2)
-                  (4, 2)
-                  (5, 2)
-                  (0, 3)
-                  (1, 3)
-                  (2, 3)
-                  (3, 3)
-                  (4, 3)
-                  (1, 4) ]
-                |> List.sort
+                   [ (2, 1)
+                     (3, 1)
+                     (4, 1)
+                     (1, 2)
+                     (2, 2)
+                     (3, 2)
+                     (4, 2)
+                     (5, 2)
+                     (0, 3)
+                     (1, 3)
+                     (2, 3)
+                     (3, 3)
+                     (4, 3)
+                     (1, 4) ]
+                   |> List.sort
                Actual = getBasin 2 2 map |> List.sort |}
 
         printResult
             {| Expected =
-                [ (7, 2)
-                  (6, 3)
-                  (7, 3)
-                  (8, 3)
-                  (5, 4)
-                  (6, 4)
-                  (7, 4)
-                  (8, 4)
-                  (9, 4) ]
-                |> List.sort
+                   [ (7, 2)
+                     (6, 3)
+                     (7, 3)
+                     (8, 3)
+                     (5, 4)
+                     (6, 4)
+                     (7, 4)
+                     (8, 4)
+                     (9, 4) ]
+                   |> List.sort
                Actual = getBasin 6 4 map |> List.sort |}
 
         printResult

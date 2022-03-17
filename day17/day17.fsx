@@ -25,12 +25,12 @@ module Probe =
         { X = probe.X + probe.XVelocity
           Y = probe.Y + probe.YVelocity
           XVelocity =
-            if probe.XVelocity > 0 then
-                probe.XVelocity - 1
-            else if probe.XVelocity < 0 then
-                probe.XVelocity + 1
-            else
-                0
+              if probe.XVelocity > 0 then
+                  probe.XVelocity - 1
+              else if probe.XVelocity < 0 then
+                  probe.XVelocity + 1
+              else
+                  0
           YVelocity = probe.YVelocity - 1 }
 
     let hitsTarget minX maxX minY maxY probe : option<int> =
@@ -76,8 +76,7 @@ let hits =
           yield!
               [ for y in (-yRange) .. yRange do
                     match Probe.make x y
-                          |> Probe.hitsTarget minX maxX minY maxY
-                        with
+                          |> Probe.hitsTarget minX maxX minY maxY with
                     | Some peakY -> yield peakY
                     | None -> () ] ]
 
@@ -87,4 +86,5 @@ hits
 
 hits
 |> List.length
-|> printfn "There are %d distinct initial velocity values that cause the probe to fall within the target area"
+|> printfn
+    "There are %d distinct initial velocity values that cause the probe to fall within the target area"

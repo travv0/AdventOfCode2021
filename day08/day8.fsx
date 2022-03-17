@@ -19,22 +19,28 @@ let lines =
 
 let digits =
     lines
-    |> Array.map (fun line ->
-        match
-            line.Split
-                (
-                    '|',
-                    StringSplitOptions.RemoveEmptyEntries
-                    ||| StringSplitOptions.TrimEntries
-                )
-            with
-        | [| input; output |] -> input.Split(' ') |> Array.map Set.ofSeq, output.Split(' ') |> Array.map Set.ofSeq
-        | _ -> failwithf "bad parse of line %s" line)
+    |> Array.map
+        (fun line ->
+            match
+                line.Split
+                    (
+                        '|',
+                        StringSplitOptions.RemoveEmptyEntries
+                        ||| StringSplitOptions.TrimEntries
+                    )
+                with
+            | [| input; output |] ->
+                input.Split(' ') |> Array.map Set.ofSeq,
+                output.Split(' ') |> Array.map Set.ofSeq
+            | _ -> failwithf "bad parse of line %s" line)
 
 let digitsWithUniqueNumOfSegments =
     digits
-    |> Seq.fold (fun accum a -> a |> snd |> Seq.ofArray |> Seq.append accum) Seq.empty
-    |> Seq.filter (fun num -> let n = Set.count num in n = 2 || n = 3 || n = 4 || n = 7)
+    |> Seq.fold
+        (fun accum a -> a |> snd |> Seq.ofArray |> Seq.append accum)
+        Seq.empty
+    |> Seq.filter
+        (fun num -> let n = Set.count num in n = 2 || n = 3 || n = 4 || n = 7)
     |> Seq.toList
 
 module Option =
@@ -75,9 +81,10 @@ let solve (nums: seq<Digit>) =
 
     let two =
         fiveSegmentNums
-        |> Seq.tryFind (fun num ->
-            Set.difference (Set.difference num three) four
-            |> Set.count = 1)
+        |> Seq.tryFind
+            (fun num ->
+                Set.difference (Set.difference num three) four
+                |> Set.count = 1)
         |> Option.defaultFailWith "failed to find 2"
 
     let five =
@@ -92,16 +99,18 @@ let solve (nums: seq<Digit>) =
 
     let six =
         sixSegmentNums
-        |> Seq.tryFind (fun num ->
-            Set.isSubset five num
-            && Set.exists ((=) bottomLeftSegment) num)
+        |> Seq.tryFind
+            (fun num ->
+                Set.isSubset five num
+                && Set.exists ((=) bottomLeftSegment) num)
         |> Option.defaultFailWith "failed to find 6"
 
     let nine =
         sixSegmentNums
-        |> Seq.tryFind (fun num ->
-            Set.isSubset five num
-            && not (Set.exists ((=) bottomLeftSegment) num))
+        |> Seq.tryFind
+            (fun num ->
+                Set.isSubset five num
+                && not (Set.exists ((=) bottomLeftSegment) num))
         |> Option.defaultFailWith "failed to find 9"
 
     let zero =
@@ -132,8 +141,9 @@ digitsWithUniqueNumOfSegments
 |> printfn "In the output values, the digits 1, 4, 7, and 8 appear %d times"
 
 digits
-|> Seq.map (fun (input, output) ->
-    let digits = solve input
-    toNumber digits output)
+|> Seq.map
+    (fun (input, output) ->
+        let digits = solve input
+        toNumber digits output)
 |> Seq.fold (+) 0
 |> printfn "Adding up all of the output values produces %d"

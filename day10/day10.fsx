@@ -81,7 +81,8 @@ let processLine line =
                 | OpenPointy -> go (token :: tokens) line
                 | _ ->
                     match tokens with
-                    | openingToken :: tokens when token |> closes openingToken -> go tokens line
+                    | openingToken :: tokens when token |> closes openingToken ->
+                        go tokens line
                     | _ -> Corrupted token
             | [] -> Incomplete(autocomplete tokens)
 
@@ -119,7 +120,8 @@ let scoreAutocomplete tokens =
 let processedLines = lines |> Array.map processLine
 
 processedLines
-|> Seq.choose (function
+|> Seq.choose
+    (function
     | Corrupted token -> Some token
     | _ -> None)
 |> Seq.map scoreSyntaxError
@@ -128,7 +130,8 @@ processedLines
 
 let autocompleteScores =
     processedLines
-    |> Seq.choose (function
+    |> Seq.choose
+        (function
         | Incomplete tokens -> Some tokens
         | _ -> None)
     |> Seq.map scoreAutocomplete

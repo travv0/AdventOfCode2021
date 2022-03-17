@@ -41,9 +41,10 @@ let parseInput (input: string) : ParseResult =
                                     ||| StringSplitOptions.TrimEntries
                                 )
                                 |> Seq.filter ((<>) "")
-                                |> Seq.map (fun s ->
-                                    { Num = UInt32.Parse(s)
-                                      Called = false }) ] ]
+                                |> Seq.map
+                                    (fun s ->
+                                        { Num = UInt32.Parse(s)
+                                          Called = false }) ] ]
 
         { Queue = queue; Boards = boards }
     | _ -> failwithf "bad parse: %A" sections
@@ -52,20 +53,26 @@ let checkForWin (board: Board) =
     let range = seq { 0 .. Seq.length board.[0, *] - 1 }
 
     range
-    |> Seq.exists (fun i ->
-        board.[i, *]
-        |> Seq.forall (fun cell -> cell.Called))
+    |> Seq.exists
+        (fun i ->
+            board.[i, *]
+            |> Seq.forall (fun cell -> cell.Called))
     || range
-       |> Seq.exists (fun i ->
-           board.[*, i]
-           |> Seq.forall (fun cell -> cell.Called))
+       |> Seq.exists
+           (fun i ->
+               board.[*, i]
+               |> Seq.forall (fun cell -> cell.Called))
 
 let markCell number board =
     board
-    |> Array2D.map (fun cell -> { cell with Called = cell.Called || cell.Num = number })
+    |> Array2D.map
+        (fun cell ->
+            { cell with
+                  Called = cell.Called || cell.Num = number })
 
 let sumUnmarked board =
-    seq { for cell in Seq.cast board -> if not cell.Called then cell.Num else 0u }
+    seq {
+        for cell in Seq.cast board -> if not cell.Called then cell.Num else 0u }
     |> Seq.sum
 
 let calcWinningScore lastCalled board = sumUnmarked board * lastCalled
@@ -75,7 +82,11 @@ let rec findWinningScore lastCalled queue boards =
     | Some board -> calcWinningScore lastCalled board
     | None ->
         match queue with
-        | calledNum :: newQueue -> findWinningScore calledNum newQueue (Seq.map (markCell calledNum) boards)
+        | calledNum :: newQueue ->
+            findWinningScore
+                calledNum
+                newQueue
+                (Seq.map (markCell calledNum) boards)
         | [] -> failwith "game ended without a winner"
 
 let findFirstWinningScore queue boards = findWinningScore 0u queue boards
@@ -97,9 +108,13 @@ let findLastWinningScore queue boards =
             boards |> List.filter (not << checkForWin)
 
         match newBoards, queue with
-        | [ board ], calledNum :: newQueue -> findWinningScore calledNum newQueue [ markCell calledNum board ]
+        | [ board ], calledNum :: newQueue ->
+            findWinningScore calledNum newQueue [ markCell calledNum board ]
         | [], _ -> failwith "ran out of boards"
-        | _, calledNum :: newQueue -> findLastWinningScore' newQueue (List.map (markCell calledNum) newBoards)
+        | _, calledNum :: newQueue ->
+            findLastWinningScore'
+                newQueue
+                (List.map (markCell calledNum) newBoards)
         | _, [] -> failwith "game ended without a winner"
 
     findLastWinningScore' queue boards

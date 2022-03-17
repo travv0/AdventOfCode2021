@@ -5,7 +5,11 @@ type Count =
       Ones: int }
     static member Zero = { Zeros = 0; Ones = 0 }
 
-    static member (+)({ Zeros = zeros1; Ones = ones1 }, { Zeros = zeros2; Ones = ones2 }) =
+    static member (+)
+        (
+            { Zeros = zeros1; Ones = ones1 },
+            { Zeros = zeros2; Ones = ones2 }
+        ) =
         { Zeros = zeros1 + zeros2
           Ones = ones1 + ones2 }
 
@@ -16,7 +20,8 @@ let incrementCount count bit =
     | _ -> failwithf "Bad input bit %c" bit
 
 module Part1 =
-    let countBits: seq<Count> -> seq<char> -> seq<Count> = Seq.map2 incrementCount
+    let countBits: seq<Count> -> seq<char> -> seq<Count> =
+        Seq.map2 incrementCount
 
     let counts (input: seq<string>) =
         let numLength = input |> Seq.head |> Seq.length
@@ -70,7 +75,9 @@ let fileName =
 let input = File.ReadLines(fileName)
 let counts = Part1.counts input
 
-printfn "The power consumption of the submarine is %d" (Part1.gammaRate counts * Part1.epsilonRate counts)
+printfn
+    "The power consumption of the submarine is %d"
+    (Part1.gammaRate counts * Part1.epsilonRate counts)
 
 printfn
     "The life support rating of the submarine is %d"

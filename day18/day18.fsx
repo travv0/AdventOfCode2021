@@ -56,7 +56,8 @@ module SnailfishNumber =
         match num with
         | Pair (a, b) ->
             match walkPath num path with
-            | Pair (Number n, Number _) -> Pair(addToRight a n, edgeExplodeLeft b)
+            | Pair (Number n, Number _) ->
+                Pair(addToRight a n, edgeExplodeLeft b)
             | _ -> failwith "explodeRight: path didn't lead to pair of numbers"
         | Number _ -> failwith "explodeRight: hit number"
 
@@ -64,7 +65,8 @@ module SnailfishNumber =
         match num with
         | Pair (a, b) ->
             match walkPath num path with
-            | Pair (Number _, Number m) -> Pair(edgeExplodeRight a, addToLeft b m)
+            | Pair (Number _, Number m) ->
+                Pair(edgeExplodeRight a, addToLeft b m)
             | _ -> failwith "explodeLeft: path didn't lead to pair of numbers"
         | Number _ -> failwith "explodeLeft: hit number"
 
@@ -84,7 +86,10 @@ module SnailfishNumber =
                     match (dir, num) with
                     | L, Pair (a, b) -> Pair(explode a tl, b)
                     | R, Pair (a, b) -> Pair(a, explode b tl)
-                    | _, _ -> failwithf "explode: bad path for num %s" (num.ToString())
+                    | _, _ ->
+                        failwithf
+                            "explode: bad path for num %s"
+                            (num.ToString())
             | _ -> failwith "explode: empty path"
 
     let rec explodePath num path =
@@ -161,7 +166,8 @@ type SnailfishNumber with
             let cs =
                 match cs with
                 | ']' :: cs -> cs
-                | c :: _ -> failwithf "parsePair: no closing bracket, found '%c'" c
+                | c :: _ ->
+                    failwithf "parsePair: no closing bracket, found '%c'" c
                 | [] -> failwith "parsePair: hit end of string"
 
             (Pair(firstElem, secondElem), cs)
@@ -192,13 +198,15 @@ nums
 |> printfn "The magnitude of the final sum is %d"
 
 nums
-|> Seq.map (fun n ->
-    nums
-    |> List.choose (fun m ->
-        if n <> m then
-            Some((n + m).Magnitude)
-        else
-            None))
+|> Seq.map
+    (fun n ->
+        nums
+        |> List.choose
+            (fun m ->
+                if n <> m then
+                    Some((n + m).Magnitude)
+                else
+                    None))
 |> Seq.concat
 |> Seq.max
 |> printfn

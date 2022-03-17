@@ -14,7 +14,12 @@ let input = File.ReadAllText fileName
 
 type Neighbor<'a> = { Node: 'a; Weight: int }
 
-let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<Neighbor<'a>>)) =
+let astar
+    (start: 'a)
+    (goal: 'a)
+    (h: 'a -> int)
+    (neighbors: 'a -> #seq<Neighbor<'a>>)
+    =
     let openSet =
         PriorityQueue([ struct (start, h start) ])
 
@@ -23,8 +28,8 @@ let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<Neighbor
 
     let gScore node =
         match gScoreMap.TryGetValue node with
-        | (true, v) -> v
-        | (false, _) -> Int32.MaxValue
+        | true, v -> v
+        | false, _ -> Int32.MaxValue
 
     let mutable result = None
 
@@ -42,7 +47,14 @@ let astar (start: 'a) (goal: 'a) (h: 'a -> int) (neighbors: ('a -> #seq<Neighbor
                     gScoreMap.[neighbor] <- tentativeGScore
                     let fScore = tentativeGScore + h neighbor
 
-                    if not (Seq.exists (fun struct (e, _) -> e = neighbor) openSet.UnorderedItems) then
+                    if
+                        not
+                            (
+                                Seq.exists
+                                    (fun struct (e, _) -> e = neighbor)
+                                    openSet.UnorderedItems
+                            )
+                    then
                         openSet.Enqueue(neighbor, fScore)
 
     result
@@ -60,41 +72,46 @@ let parseInput (input: string) =
         StringSplitOptions.RemoveEmptyEntries
         ||| StringSplitOptions.TrimEntries
     )
-    |> Array.map (fun line ->
-        line
-        |> Seq.map (fun c -> sprintf "%c" c |> int)
-        |> Seq.toArray)
+    |> Array.map
+        (fun line ->
+            line
+            |> Seq.map (fun c -> sprintf "%c" c |> int)
+            |> Seq.toArray)
     |> array2D
 
 let cave = parseInput input
-let heuristic (Coords (x1, y1)) (Coords (x2, y2)) = abs (x2 - x1) + abs (y2 - y1)
+
+let heuristic (Coords (x1, y1)) (Coords (x2, y2)) =
+    abs (x2 - x1) + abs (y2 - y1)
+
 let caveWidth = Array2D.length2 cave
 let caveHeight = Array2D.length1 cave
 
 let neighbors maxX maxY (Coords (x, y)) =
     [ (-1, 0); (0, -1); (1, 0); (0, 1) ]
-    |> List.choose (fun (dx, dy) ->
-        let newX = x + dx
-        let newY = y + dy
+    |> List.choose
+        (fun (dx, dy) ->
+            let newX = x + dx
+            let newY = y + dy
 
-        if newX >= 0
-           && newY >= 0
-           && newX <= maxX
-           && newY <= maxY then
-            let tileDistance = (newX / caveWidth) + (newY / caveHeight)
+            if newX >= 0
+               && newY >= 0
+               && newX <= maxX
+               && newY <= maxY then
+                let tileDistance = (newX / caveWidth) + (newY / caveHeight)
 
-            let shiftedWeight =
-                let temp =
-                    (cave.[newY % caveHeight, newX % caveWidth]
-                     + tileDistance) % 9
+                let shiftedWeight =
+                    let temp =
+                        (cave.[newY % caveHeight, newX % caveWidth]
+                         + tileDistance) % 9
 
-                if temp = 0 then 9 else temp
+                    if temp = 0 then 9 else temp
 
-            Some
-                { Node = Coords.make newX newY
-                  Weight = shiftedWeight }
-        else
-            None)
+                Some
+                    { Node = Coords.make newX newY
+                      Weight = shiftedWeight }
+            else
+                None)
 
 let getLowestRisk goal =
     astar Coords.zero goal (flip heuristic goal) (neighbors goal.X goal.Y)
@@ -106,10 +123,12 @@ module Part1 =
     makeGoal (caveWidth - 1)
     |> getLowestRisk
     |> Option.defaultWith (fun () -> failwith "part 1 failed to find path")
-    |> printfn "The lowest total risk of any path from the top left to the bottom right is %d"
+    |> printfn
+        "The lowest total risk of any path from the top left to the bottom right is %d"
 
 module Part2 =
     makeGoal ((caveWidth * 5) - 1)
     |> getLowestRisk
     |> Option.defaultWith (fun () -> failwith "part 2 failed to find path")
-    |> printfn "Using the full map, the lowest total risk of any path from the top left to the bottom right is %d"
+    |> printfn
+        "Using the full map, the lowest total risk of any path from the top left to the bottom right is %d"

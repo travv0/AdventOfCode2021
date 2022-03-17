@@ -41,7 +41,11 @@ module Reactor =
         | Off -> Set.difference reactor cuboid
 
     let runSteps steps reactor =
-        List.fold (fun reactor (RebootStep (to_, cuboid)) -> setCuboid to_ cuboid reactor) steps reactor
+        List.fold
+            (fun reactor (RebootStep (to_, cuboid)) ->
+                setCuboid to_ cuboid reactor)
+            steps
+            reactor
 
 [<Struct>]
 type BootStage =
@@ -77,9 +81,10 @@ module CuboidRange =
         match stage with
         | Initial ->
             if [ range.X; range.Y; range.Z ]
-               |> List.forall (fun r ->
-                   [ r.Start; r.Stop ]
-                   |> List.forall (between (-50) 50)) then
+               |> List.forall
+                   (fun r ->
+                       [ r.Start; r.Stop ]
+                       |> List.forall (between -50 50)) then
                 Some range
             else
                 None
@@ -114,7 +119,8 @@ module Part1 =
 
     Reactor.runSteps reactor steps
     |> Set.count
-    |> printfn "After executing the steps in the initialization procedure region, %d cubes are on"
+    |> printfn
+        "After executing the steps in the initialization procedure region, %d cubes are on"
 
 // module Part2 =
 //     let steps = parseInput input Reboot

@@ -18,10 +18,12 @@ module Player =
     let make pos = { Position = pos; Score = 0 }
 
     let move spaces player =
-        { player with Position = (player.Position + spaces - 1) % 10 + 1 }
+        { player with
+              Position = (player.Position + spaces - 1) % 10 + 1 }
 
     let updateScore player =
-        { player with Score = player.Score + player.Position }
+        { player with
+              Score = player.Score + player.Position }
 
 [<Struct>]
 type Game =
@@ -61,16 +63,18 @@ module Game =
           RollCount = 0
           WinningScore = winningScore
           Players =
-            Map.ofList [ (One, playerOne)
-                         (Two, playerTwo) ] }
+              Map.ofList [ (One, playerOne)
+                           (Two, playerTwo) ] }
 
     let updatePlayer playerNum player game : Game =
-        { game with Players = Map.add playerNum player game.Players }
+        { game with
+              Players = Map.add playerNum player game.Players }
 
     let getPlayer playerNum game : Player = Map.find playerNum game.Players
 
     let alterPlayer playerNum f game : Game =
-        { game with Players = Map.change playerNum (Option.map f) game.Players }
+        { game with
+              Players = Map.change playerNum (Option.map f) game.Players }
 
     module Deterministic =
         let roll times game =
@@ -78,12 +82,16 @@ module Game =
             |> (fun x ->
                 List.sum x,
                 { game with
-                    Die = List.last x
-                    RollCount = game.RollCount + times })
+                      Die = List.last x
+                      RollCount = game.RollCount + times })
 
         let playTurn playerNum game =
-            let (spaces, game) = roll 3 game
-            alterPlayer playerNum (Player.move spaces >> Player.updateScore) game
+            let spaces, game = roll 3 game
+
+            alterPlayer
+                playerNum
+                (Player.move spaces >> Player.updateScore)
+                game
 
         let play game =
             let rec loop currentPlayer game =
@@ -138,7 +146,12 @@ module Game =
 
                 wins
 
-        let rec roll (game: Game) (playerNum: PlayerNum) (n: int) (sum: int) : QuantumWins =
+        let rec roll
+            (game: Game)
+            (playerNum: PlayerNum)
+            (n: int)
+            (sum: int)
+            : QuantumWins =
             if n > 0 then
                 [ for i in 1 .. 3 -> roll game playerNum (n - 1) (sum + i) ]
                 |> List.sum
@@ -171,7 +184,7 @@ module Game =
         let play (game: Game) : QuantumWins = playTurn game Two None
 
 let calcPart1 playerOnePos playerTwoPos =
-    let (losingScore, rollCount) =
+    let losingScore, rollCount =
         Game.make 1000 playerOnePos playerTwoPos
         |> Game.Deterministic.play
 
@@ -184,7 +197,9 @@ let calcPart2 playerOnePos playerTwoPos =
 
 let parseInput (input: string) =
     match input.Trim().Split('\n') with
-    | [| one; two |] -> (one.Split(' ') |> Array.last |> int, two.Split(' ') |> Array.last |> int)
+    | [| one; two |] ->
+        (one.Split(' ') |> Array.last |> int,
+         two.Split(' ') |> Array.last |> int)
     | _ -> failwith "bad parse"
 
 let fileName =
@@ -196,7 +211,8 @@ let playerOnePos, playerTwoPos =
     File.ReadAllText(fileName) |> parseInput
 
 calcPart1 playerOnePos playerTwoPos
-|> printfn "The score of the losing player multiplied by the number of times the die was rolled is %d"
+|> printfn
+    "The score of the losing player multiplied by the number of times the die was rolled is %d"
 
 calcPart2 playerOnePos playerTwoPos
 |> printfn "The player that wins more with the quantum die wins in %d universes"

@@ -14,7 +14,8 @@ let parseCommand command =
 
 let parseLine (line: string) =
     match line.Split(' ') with
-    | [| command; units |] -> Some(string command |> parseCommand, units |> string |> int)
+    | [| command; units |] ->
+        Some(string command |> parseCommand, units |> string |> int)
     | _ -> None
 
 let fileName =
@@ -23,27 +24,28 @@ let fileName =
     | _ -> "input.txt"
 
 let commands =
-    File.ReadLines(fileName)
-    |> Seq.choose parseLine
+    File.ReadLines(fileName) |> Seq.choose parseLine
 
 module Part1 =
     let moveSub (coords: {| Depth: int; Position: int |}) (command, units) =
         match command with
         | Forward ->
             {| coords with
-                Position = coords.Position + units |}
+                   Position = coords.Position + units |}
         | Down ->
             {| coords with
-                Depth = coords.Depth + units |}
+                   Depth = coords.Depth + units |}
         | Up ->
             {| coords with
-                Depth = coords.Depth - units |}
+                   Depth = coords.Depth - units |}
 
     let coords =
         commands
         |> Seq.fold moveSub {| Position = 0; Depth = 0 |}
 
-    printfn "Final horizontal position multiplied by final depth for part 1: %d" (coords.Position * coords.Depth)
+    printfn
+        "Final horizontal position multiplied by final depth for part 1: %d"
+        (coords.Position * coords.Depth)
 
 module Part2 =
     let moveSub
@@ -55,17 +57,19 @@ module Part2 =
         match command with
         | Forward ->
             {| coords with
-                Position = coords.Position + units
-                Depth = coords.Depth + coords.Aim * units |}
+                   Position = coords.Position + units
+                   Depth = coords.Depth + coords.Aim * units |}
         | Down ->
             {| coords with
-                Aim = coords.Aim + units |}
+                   Aim = coords.Aim + units |}
         | Up ->
             {| coords with
-                Aim = coords.Aim - units |}
+                   Aim = coords.Aim - units |}
 
     let coords =
         commands
         |> Seq.fold moveSub {| Position = 0; Depth = 0; Aim = 0 |}
 
-    printfn "Final horizontal position multiplied by final depth for part 2: %d" (coords.Position * coords.Depth)
+    printfn
+        "Final horizontal position multiplied by final depth for part 2: %d"
+        (coords.Position * coords.Depth)

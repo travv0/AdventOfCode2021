@@ -32,7 +32,9 @@ module Part1 =
 
 module Part2 =
     let cheapestFuelCost positions =
-        calcCheapestFuelCost (fun i pos -> Array.init (abs (pos - i)) ((+) 1) |> Array.sum) positions
+        calcCheapestFuelCost
+            (fun i pos -> Array.init (abs (pos - i)) ((+) 1) |> Array.sum)
+            positions
 
 module Tests =
     let run () =
@@ -45,36 +47,38 @@ module Tests =
             "%A"
             {| Expected = {| Position = 2; Cost = 37 |}
                Actual =
-                Part1.cheapestFuelCost [| 16
-                                          1
-                                          2
-                                          0
-                                          4
-                                          2
-                                          7
-                                          1
-                                          2
-                                          14 |] |}
+                   Part1.cheapestFuelCost [| 16
+                                             1
+                                             2
+                                             0
+                                             4
+                                             2
+                                             7
+                                             1
+                                             2
+                                             14 |] |}
 
         printfn
             "%A"
             {| Expected = {| Position = 5; Cost = 168 |}
                Actual =
-                Part2.cheapestFuelCost [| 16
-                                          1
-                                          2
-                                          0
-                                          4
-                                          2
-                                          7
-                                          1
-                                          2
-                                          14 |] |}
+                   Part2.cheapestFuelCost [| 16
+                                             1
+                                             2
+                                             0
+                                             4
+                                             2
+                                             7
+                                             1
+                                             2
+                                             14 |] |}
 
 Part1.cheapestFuelCost positions
 |> cost
-|> printfn "The cheapest amount of fuel that can be spent for all crabs to align for part 1 is %d"
+|> printfn
+    "The cheapest amount of fuel that can be spent for all crabs to align for part 1 is %d"
 
 Part2.cheapestFuelCost positions
 |> cost
-|> printfn "The cheapest amount of fuel that can be spent for all crabs to align for part 2 is %d"
+|> printfn
+    "The cheapest amount of fuel that can be spent for all crabs to align for part 2 is %d"

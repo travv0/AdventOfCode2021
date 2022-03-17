@@ -13,7 +13,11 @@ type Rules = Map<string, char>
 type ParseResult = { Polymer: Polymer; Rules: Rules }
 
 module Map =
-    let ofListFold (folder: ('T -> 'T -> 'T)) (state: 'T) (elements: list<('Key * 'T)>) : Map<'Key, 'T> =
+    let ofListFold
+        (folder: 'T -> 'T -> 'T)
+        (state: 'T)
+        (elements: list<'Key * 'T>)
+        : Map<'Key, 'T> =
         List.fold
             (fun map (k, v) ->
                 if Map.containsKey k map then
@@ -35,7 +39,8 @@ let makePolymer s =
     s
     |> List.ofSeq
     |> tails
-    |> List.choose (function
+    |> List.choose
+        (function
         | a :: b :: _ -> Some(String([| a; b |]), 1L)
         | a :: _ -> Some(String([| a; ' ' |]), 1)
         | _ -> None)
@@ -48,10 +53,11 @@ let parseInput (input: string) : ParseResult =
 
         let rules =
             rules.Split('\n')
-            |> Array.map (fun line ->
-                match line.Split(" -> ") with
-                | [| from; to_ |] -> (from, to_.[0])
-                | _ -> failwithf "bad parse: %s" line)
+            |> Array.map
+                (fun line ->
+                    match line.Split(" -> ") with
+                    | [| from; to_ |] -> (from, to_.[0])
+                    | _ -> failwithf "bad parse: %s" line)
             |> Map.ofSeq
 
         { Polymer = polymer; Rules = rules }
