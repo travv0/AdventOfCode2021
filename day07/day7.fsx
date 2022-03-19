@@ -1,5 +1,4 @@
-﻿open System
-open System.IO
+﻿open System.IO
 
 let parseInput (input: string) =
     input.Trim().Split(',') |> Array.map int
@@ -11,20 +10,10 @@ let fileName =
 
 let positions = File.ReadAllText(fileName) |> parseInput
 
-let inline cost r = (^T: (member Cost : int) r)
-
 let calcCheapestFuelCost fuelUseCalc positions =
-    let mutable cheapestPosition, cheapestCost = -1, Int32.MaxValue
-
-    for i in Array.min positions .. Array.max positions do
-        let cost = positions |> Array.sumBy (fuelUseCalc i)
-
-        if cost < cheapestCost then
-            cheapestCost <- cost
-            cheapestPosition <- i
-
-    {| Position = cheapestPosition
-       Cost = cheapestCost |}
+    [| Array.min positions .. Array.max positions |]
+    |> Array.map (fun i -> positions |> Array.sumBy (fuelUseCalc i))
+    |> Array.min
 
 module Part1 =
     let cheapestFuelCost positions =
@@ -45,7 +34,7 @@ module Tests =
 
         printfn
             "%A"
-            {| Expected = {| Position = 2; Cost = 37 |}
+            {| Expected = 37
                Actual =
                    Part1.cheapestFuelCost [| 16
                                              1
@@ -60,7 +49,7 @@ module Tests =
 
         printfn
             "%A"
-            {| Expected = {| Position = 5; Cost = 168 |}
+            {| Expected = 168
                Actual =
                    Part2.cheapestFuelCost [| 16
                                              1
@@ -74,11 +63,9 @@ module Tests =
                                              14 |] |}
 
 Part1.cheapestFuelCost positions
-|> cost
 |> printfn
     "The cheapest amount of fuel that can be spent for all crabs to align for part 1 is %d"
 
 Part2.cheapestFuelCost positions
-|> cost
 |> printfn
     "The cheapest amount of fuel that can be spent for all crabs to align for part 2 is %d"
